@@ -1,0 +1,12 @@
+{
+  "name": "minijuegos-logica",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "portada": "node herramientas/generar-portada.mjs",
+    "test": "node --test --test-concurrency=1 \"pruebas/*.test.mjs\""
+  },
+  "devDependencies": {
+    "playwright-core": "1.49.1"
+  }
+}

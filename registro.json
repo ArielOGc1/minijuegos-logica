@@ -1,0 +1,22 @@
+{
+  "sitio": "https://arielogc1.github.io/minijuegos-logica/",
+  "fin_de_curso_avisado": false,
+  "conceptos": [
+    {
+      "orden": 1,
+      "id": "variables",
+      "nombre": "Variables",
+      "estado": "publicado",
+      "titulo": "El casillero",
+      "archivo": "juegos/01-variables.html",
+      "fecha": "2026-11-03",
+      "mecanicas": ["predecir qué imprime", "trazar valores finales", "ordenar bloques ejecutables", "completar una expresión probada con varios valores"]
+    },
+    { "orden": 2, "id": "condicionales", "nombre": "Condicionales", "estado": "pendiente" },
+    { "orden": 3, "id": "bucles", "nombre": "Bucles", "estado": "pendiente" },
+    { "orden": 4, "id": "funciones", "nombre": "Funciones", "estado": "pendiente" },
+    { "orden": 5, "id": "listas", "nombre": "Arrays y listas", "estado": "pendiente" },
+    { "orden": 6, "id": "recursion", "nombre": "Recursión", "estado": "pendiente" },
+    { "orden": 7, "id": "algoritmos", "nombre": "Algoritmos básicos: ordenar y buscar", "estado": "pendiente" }
+  ]
+}

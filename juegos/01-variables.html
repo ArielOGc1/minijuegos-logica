@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El casillero: variables | Minijuegos de lógica</title>
+<meta name="description" content="Minijuego en español para entender qué es una variable, sin experiencia previa en programación.">
+<link rel="icon" href="data:,">
+<style>
+:root {
+  color-scheme: light;
+  --papel: #E8EEF6;
+  --tinta: #14264F;
+  --casillero: #1F46A8;
+  --hueco: #0F2A6B;
+  --nota: #FFD23F;
+  --blanco: #FFFFFF;
+  --exito: #0B6E4F;
+  --exito-fondo: #D5F2E6;
+  --pista: #A01D45;
+  --pista-fondo: #FBE3EA;
+  --titulo: Rockwell, "Roboto Slab", "Sitka Text", Georgia, serif;
+  --texto: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --codigo: "Cascadia Code", Consolas, ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--tinta);
+  font: 1.0625rem/1.55 var(--texto);
+}
+a { color: inherit; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--pista); outline-offset: 2px; }
+.ancho { width: min(100% - 32px, 960px); margin-inline: auto; }
+
+.banner { background: var(--casillero); color: var(--blanco); padding: 1rem 0 1.5rem; }
+.banner a { font-size: .95rem; }
+.banner h1 {
+  margin: .4rem 0 0;
+  font: 700 clamp(2.5rem, 9vw, 4.25rem)/1.02 var(--titulo);
+  color: var(--nota);
+}
+.banner p { margin: .25rem 0 0; font-size: 1.05rem; }
+
+.marcador {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--tinta); color: var(--blanco);
+  padding: .5rem 0;
+}
+.marcador .ancho { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.avance { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+#progreso { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+#progreso li { width: 18px; height: 18px; background: var(--hueco); border: 2px solid #5D7CC9; border-radius: 2px; }
+#progreso li.actual { border-color: var(--nota); }
+#progreso li.hecho { background: var(--nota); border-color: var(--nota); }
+.puntuacion { white-space: nowrap; }
+#puntos { font: 700 1.5rem/1 var(--titulo); color: var(--nota); }
+
+.concepto { max-width: 68ch; margin-block: 1.5rem; font-size: 1.125rem; }
+code { font-family: var(--codigo); font-size: .92em; background: var(--blanco); padding: .05em .3em; border-radius: 3px; white-space: nowrap; }
+
+h2 { margin: 0; font: 700 1.6rem/1.2 var(--titulo); }
+.objetivo { margin: .35rem 0 1rem; max-width: 68ch; }
+.valor { margin: 0 0 1rem; font-size: .95rem; }
+
+.mesa { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 760px) { .mesa { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); } }
+
+.hoja { background: var(--blanco); border: 2px solid var(--tinta); border-radius: 4px; padding: .75rem; min-width: 0; }
+.hoja h3, .bandeja h3 { margin: 0 0 .4rem; font: 600 .95rem/1.3 var(--texto); }
+.codigo { margin: 0; padding: 0 0 0 2.2rem; font: 1rem/1.5 var(--codigo); }
+.codigo li { padding: .2rem .35rem; border-radius: 3px; overflow-wrap: anywhere; }
+.codigo li::marker { color: #5A6B92; }
+.codigo li.activa { background: var(--nota); }
+.codigo li.con-error { background: var(--pista-fondo); }
+.linea { display: flex; align-items: center; justify-content: space-between; gap: .4rem; flex-wrap: wrap; }
+.acciones { display: flex; gap: 4px; }
+.mini {
+  min-width: 36px; min-height: 36px; padding: 0;
+  background: var(--papel); border: 1px solid var(--tinta); border-radius: 3px; cursor: pointer;
+}
+.mini:disabled { opacity: .35; cursor: default; }
+.vacio-programa { margin: .25rem 0; color: #4A5B85; font-size: .95rem; }
+#expresion {
+  width: min(100%, 11em); padding: .15rem .4rem;
+  font-family: var(--codigo); background: #FFF6CC;
+  border: 2px solid var(--tinta); border-radius: 3px;
+}
+
+.bandeja { margin-top: .9rem; padding-top: .75rem; border-top: 2px dashed #9AA8C7; }
+.bloques { display: flex; flex-wrap: wrap; gap: .5rem; }
+.bloque {
+  min-height: 44px; padding: .3rem .7rem;
+  font-family: var(--codigo); font-size: .95rem;
+  background: var(--papel); border: 2px solid var(--tinta); border-radius: 4px; cursor: pointer;
+}
+.bloque:hover { background: var(--nota); }
+
+.casilleros { display: grid; gap: .5rem; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); }
+.casillero { background: var(--casillero); padding: .45rem; border-radius: 4px; transition: background .2s; }
+.casillero.mal { background: var(--pista); }
+.casillero.bien { background: var(--exito); }
+.etiqueta {
+  display: block; margin-bottom: .4rem; padding: .1rem .25rem;
+  background: var(--blanco); border-radius: 2px;
+  font: 600 .95rem/1.4 var(--codigo); text-align: center; overflow-wrap: anywhere;
+}
+.hueco {
+  position: relative; display: grid; place-items: center;
+  height: 92px; overflow: hidden;
+  background: var(--hueco); border-radius: 2px;
+  box-shadow: inset 0 10px 12px -6px #000A;
+}
+.vacio { color: #B9CBF2; font-size: .9rem; }
+.nota, .hueco input {
+  width: 74%; padding: .3rem .1rem;
+  background: var(--nota); color: var(--tinta);
+  font: 700 1.5rem/1.2 var(--codigo); text-align: center;
+  border: 0; border-radius: 1px;
+}
+.nota { grid-area: 1 / 1; transform: rotate(-2deg); box-shadow: 0 2px 0 #0005; }
+.nota.entra { animation: entra .32s ease-out; }
+.nota.sale { animation: sale .38s ease-in forwards; }
+@keyframes entra { from { transform: translateY(-90px) rotate(5deg); } to { transform: translateY(0) rotate(-2deg); } }
+@keyframes sale { to { transform: translateY(95px) rotate(-16deg); opacity: .7; } }
+
+.ticket { margin-top: .75rem; padding: .6rem .75rem; background: var(--blanco); border: 2px solid var(--tinta); border-radius: 4px; }
+.ticket label, .ticket span { display: block; font-size: .95rem; font-weight: 600; }
+.ticket input, .ticket output {
+  display: block; width: 100%; min-height: 44px; margin-top: .25rem; padding: .3rem .5rem;
+  font: 700 1.25rem/1.4 var(--codigo);
+  background: #FFF6CC; border: 2px solid var(--tinta); border-radius: 3px;
+}
+.ticket output { background: var(--papel); border-style: dashed; }
+
+.mandos { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1.1rem 0 .75rem; }
+.boton {
+  min-height: 48px; padding: .5rem 1.15rem;
+  background: var(--nota); color: var(--tinta);
+  border: 2px solid var(--tinta); border-radius: 4px; box-shadow: 0 3px 0 var(--tinta);
+  font-weight: 700; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center;
+}
+.boton:hover { background: #FFE27A; }
+.boton:active { transform: translateY(3px); box-shadow: none; }
+.boton:disabled { opacity: .55; cursor: wait; }
+.boton.sobrio { background: var(--blanco); }
+
+#feedback { max-width: 68ch; min-height: 1px; margin-bottom: 2.5rem; }
+#feedback:empty { margin-bottom: 1rem; }
+.aviso { padding: .7rem .9rem; border-left: 6px solid var(--tinta); background: var(--blanco); border-radius: 0 4px 4px 0; }
+.aviso p { margin: .15rem 0 0; }
+#feedback[data-tipo="exito"] .aviso { border-color: var(--exito); background: var(--exito-fondo); }
+#feedback[data-tipo="pista"] .aviso { border-color: var(--pista); background: var(--pista-fondo); }
+
+#final { padding-block: 2rem 3rem; }
+#final h2 { font-size: clamp(1.8rem, 6vw, 2.6rem); }
+.resultado { font: 700 clamp(2.5rem, 12vw, 4.5rem)/1.1 var(--titulo); color: var(--casillero); margin: .5rem 0; }
+[hidden] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nota.entra, .nota.sale { animation: none; }
+  .casillero { transition: none; }
+}
+</style>
+</head>
+<body>
+<header class="banner">
+  <div class="ancho">
+    <a href="../index.html">Todos los minijuegos</a>
+    <h1>El casillero</h1>
+    <p>Entrega 1: variables</p>
+  </div>
+</header>
+
+<div class="marcador">
+  <div class="ancho">
+    <div class="avance">
+      <span id="texto-progreso">Reto 1 de 6</span>
+      <ol id="progreso" aria-hidden="true"></ol>
+    </div>
+    <div class="puntuacion"><span id="puntos">0</span> puntos</div>
+  </div>
+</div>
+
+<main class="ancho">
+  <p class="concepto">Una variable es como un casillero con nombre: <code>puntos = 5</code> guarda un 5 ahí y lo recuerda hasta que guardes otra cosa, que sustituye a lo anterior. Y cuando escribes ese nombre a la derecha del <code>=</code>, usas lo que haya dentro en ese momento.</p>
+
+  <section id="juego">
+    <h2 id="titulo-reto"></h2>
+    <p class="objetivo" id="objetivo"></p>
+    <p class="valor" id="valor"></p>
+    <form id="formulario" novalidate autocomplete="off">
+      <div class="mesa">
+        <div class="hoja">
+          <h3 id="titulo-hoja">Código</h3>
+          <ol class="codigo" id="codigo"></ol>
+          <p class="vacio-programa" id="vacio-programa" hidden>Tu programa está vacío. Toca un bloque para añadirlo.</p>
+          <div class="bandeja" id="bandeja" hidden>
+            <h3>Bloques disponibles</h3>
+            <div class="bloques" id="bloques"></div>
+          </div>
+        </div>
+        <div>
+          <div class="casilleros" id="casilleros"></div>
+          <div class="ticket" id="ticket" hidden></div>
+        </div>
+      </div>
+      <div class="mandos">
+        <button class="boton" type="submit" id="comprobar">Comprobar</button>
+        <button class="boton" type="button" id="siguiente" hidden>Siguiente reto</button>
+      </div>
+    </form>
+    <div id="feedback" role="status" aria-live="polite"></div>
+  </section>
+
+  <section id="final" hidden>
+    <h2>Has llenado todos los casilleros</h2>
+    <p class="resultado"><span id="total">0</span> de 600</p>
+    <p id="mejor"></p>
+    <p>Ya sabes guardar un valor, sustituirlo, copiarlo y calcular con él. Eso es lo que hace una variable.</p>
+    <div class="mandos">
+      <button class="boton" type="button" id="reiniciar">Jugar de nuevo</button>
+      <a class="boton sobrio" href="../index.html">Ver todos los minijuegos</a>
+    </div>
+  </section>
+</main>
+
+<script>
+'use strict';
+
+const RETOS = [
+  {
+    tipo: 'predecir',
+    titulo: 'La nota que se cae',
+    objetivo: 'Lee el código y escribe lo que aparecerá en pantalla. imprimir(...) muestra en pantalla el valor que le pides.',
+    codigo: ['monedas = 5', 'monedas = 8', 'imprimir(monedas)'],
+    casilleros: ['monedas'],
+    pide: 'salida',
+    exito: 'Al llegar la segunda línea, la nota anterior sale del casillero: solo cabe un valor.',
+    pistas: [
+      'Lee el código de arriba abajo, una línea cada vez. El orden importa.',
+      'Un casillero guarda un solo valor. ¿Qué le pasa al primer valor cuando llega la segunda línea?',
+      'imprimir muestra lo que hay dentro justo en ese momento. Mira cuál fue la última línea que guardó algo en monedas.'
+    ]
+  },
+  {
+    tipo: 'predecir',
+    titulo: 'Usar lo que ya hay dentro',
+    objetivo: 'Una variable puede calcularse a partir de sí misma. ¿Qué aparecerá en pantalla? El símbolo * significa multiplicar.',
+    codigo: ['puntos = 10', 'puntos = puntos + 5', 'puntos = puntos * 2', 'imprimir(puntos)'],
+    casilleros: ['puntos'],
+    pide: 'salida',
+    exito: 'La parte derecha se calcula con el valor actual, y el resultado sustituye a la nota que había.',
+    pistas: [
+      'En una línea con =, primero se calcula la parte derecha y luego se guarda el resultado a la izquierda.',
+      'puntos + 5 usa lo que hay en puntos cuando se ejecuta esa línea, no un valor nuevo.',
+      'Apunta en un papel cuánto vale puntos después de cada línea. La tercera línea parte del resultado de la segunda.'
+    ]
+  },
+  {
+    tipo: 'predecir',
+    titulo: 'Copia, no conexión',
+    objetivo: 'Escribe en cada casillero el valor con el que termina cuando acaba el programa.',
+    codigo: ['a = 3', 'b = a', 'a = 7'],
+    casilleros: ['a', 'b'],
+    pide: 'casilleros',
+    exito: 'b = a copia el valor de ese instante. Cambiar a después no afecta a b.',
+    pistas: [
+      'Sigue las líneas en orden y apunta qué guarda cada casillero después de cada una.',
+      'b = a copia el valor que hay en a en ese instante. No conecta los dos casilleros.',
+      'Cuando a cambia en la última línea, ¿se modifica algún otro casillero?'
+    ]
+  },
+  {
+    tipo: 'ordenar',
+    titulo: 'Arma el precio final',
+    objetivo: 'Construye un programa que deje un 24 en total. Añade bloques en el orden correcto. Quizá alguno sobre.',
+    inicio: [],
+    bloques: ['total = precio * 2', 'precio = precio + 2', 'precio = 10', 'precio = precio - 2'],
+    casilleros: ['precio', 'total'],
+    meta: { total: 24 },
+    exito: 'Cada línea usó valores que ya existían cuando le tocó ejecutarse. Eso es pensar en orden.',
+    pistas: [
+      'Un casillero tiene que tener algo dentro antes de poder usarlo a la derecha del =.',
+      'total se calcula con precio. ¿Qué valor debe tener precio antes de calcular total?',
+      'total se obtiene multiplicando por 2 y buscamos 24. Calcula de atrás hacia delante qué necesitas en precio.'
+    ]
+  },
+  {
+    tipo: 'ordenar',
+    titulo: 'Intercambia las notas',
+    objetivo: 'Haz que izquierda termine con el 9 y derecha con el 4. Ya están escritas las dos primeras líneas. Puedes usar aux, un casillero de apoyo.',
+    inicio: ['izquierda = 4', 'derecha = 9'],
+    bloques: ['derecha = aux', 'aux = izquierda', 'derecha = izquierda', 'izquierda = derecha'],
+    casilleros: ['izquierda', 'derecha', 'aux'],
+    meta: { izquierda: 9, derecha: 4 },
+    exito: 'Sin un casillero de apoyo, uno de los dos valores se perdería al sobrescribirlo.',
+    pistas: [
+      'Si escribes en un casillero, su valor anterior se pierde. ¿Cuál se perdería primero?',
+      'aux sirve para guardar un valor antes de que se pierda.',
+      'Antes de sobrescribir un casillero, su valor debe estar a salvo en otro sitio.'
+    ]
+  },
+  {
+    tipo: 'completar',
+    titulo: 'Que funcione siempre',
+    objetivo: 'Completa la línea para que doble guarde el doble de monedas. Probaremos tu línea con varias cantidades de monedas, no solo con 7.',
+    plantilla: [{ texto: 'monedas = 7' }, { prefijo: 'doble = ' }, { texto: 'imprimir(doble)' }],
+    casilleros: ['monedas', 'doble'],
+    variable: 'monedas',
+    resultado: 'doble',
+    casos: [7, 12, 0],
+    esperado: function (monedas) { return monedas * 2; },
+    exito: 'Tu línea funciona con cualquier cantidad. Por eso existen las variables: no hace falta conocer el valor de antemano.',
+    pistas: [
+      'Un número fijo solo acierta con un valor. El cálculo tiene que depender de lo que haya en monedas.',
+      'Puedes escribir el nombre de un casillero dentro del cálculo, igual que en los retos anteriores.',
+      'Doble es dos veces lo mismo. Piensa qué operación de las que ya viste lo consigue: + o *.'
+    ]
+  }
+];
+
+const PUNTOS_RETO = 100;
+const PENALIZACION = 20;
+const PUNTOS_MINIMOS = 40;
+const SIN_MOVIMIENTO = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const PAUSA = SIN_MOVIMIENTO ? 0 : 620;
+const CLAVE_MEJOR = 'minijuegos-logica:variables:mejor';
+
+const $ = function (id) { return document.getElementById(id); };
+const estado = { indice: 0, puntos: 0, fallos: 0, programa: [], disponibles: [], ocupado: false };
+
+class ErrorExpresion extends Error {}
+class ErrorCasillero extends Error {
+  constructor(nombre) { super(nombre); this.nombre = nombre; }
+}
+
+function tokenizar(texto) {
+  const patron = /\s*(\d+(?:[.,]\d+)?|[\p{L}_][\p{L}\p{N}_]*|[()+\-*/])/uy;
+  const tokens = [];
+  const limpio = texto.trim();
+  while (patron.lastIndex < limpio.length) {
+    const m = patron.exec(limpio);
+    if (!m) throw new ErrorExpresion('Símbolo no reconocido');
+    tokens.push(m[1]);
+  }
+  return tokens;
+}
+
+function evaluar(texto, vars) {
+  const tokens = tokenizar(texto);
+  let i = 0;
+  function factor() {
+    const t = tokens[i++];
+    if (t === undefined) throw new ErrorExpresion('Expresión incompleta');
+    if (t === '-') return -factor();
+    if (t === '(') {
+      const v = suma();
+      if (tokens[i++] !== ')') throw new ErrorExpresion('Falta un paréntesis');
+      return v;
+    }
+    if (/^\d/.test(t)) return Number(t.replace(',', '.'));
+    if (/^[\p{L}_]/u.test(t)) {
+      if (!Object.prototype.hasOwnProperty.call(vars, t)) throw new ErrorCasillero(t);
+      return vars[t];
+    }
+    throw new ErrorExpresion('Símbolo inesperado');
+  }
+  function producto() {
+    let v = factor();
+    while (tokens[i] === '*' || tokens[i] === '/') {
+      const op = tokens[i++];
+      const d = factor();
+      v = op === '*' ? v * d : v / d;
+    }
+    return v;
+  }
+  function suma() {
+    let v = producto();
+    while (tokens[i] === '+' || tokens[i] === '-') {
+      const op = tokens[i++];
+      const d = producto();
+      v = op === '+' ? v + d : v - d;
+    }
+    return v;
+  }
+  const resultado = suma();
+  if (i !== tokens.length) throw new ErrorExpresion('Sobra algo al final');
+  return resultado;
+}
+
+function ejecutar(lineas) {
+  const vars = {};
+  const pasos = [];
+  const salida = [];
+  for (let n = 0; n < lineas.length; n++) {
+    const linea = lineas[n];
+    const impresion = linea.match(/^imprimir\((.*)\)$/);
+    const asignacion = linea.match(/^([\p{L}_][\p{L}\p{N}_]*)\s*=\s*(.+)$/u);
+    try {
+      if (impresion) {
+        const valor = evaluar(impresion[1], vars);
+        salida.push(valor);
+        pasos.push({ linea: n, imprime: valor });
+      } else if (asignacion) {
+        const valor = evaluar(asignacion[2], vars);
+        vars[asignacion[1]] = valor;
+        pasos.push({ linea: n, variable: asignacion[1], valor: valor });
+      } else {
+        throw new ErrorExpresion('Línea no reconocida');
+      }
+    } catch (error) {
+      return { vars: vars, pasos: pasos, salida: salida, error: error, lineaError: n };
+    }
+  }
+  return { vars: vars, pasos: pasos, salida: salida };
+}
+
+function crear(etiqueta, propiedades, hijos) {
+  const nodo = document.createElement(etiqueta);
+  Object.assign(nodo, propiedades || {});
+  (hijos || []).forEach(function (hijo) { nodo.append(hijo); });
+  return nodo;
+}
+
+function espera(ms) {
+  return new Promise(function (hecho) { setTimeout(hecho, ms); });
+}
+
+function valorActual() {
+  return Math.max(PUNTOS_MINIMOS, PUNTOS_RETO - estado.fallos * PENALIZACION);
+}
+
+function pintarMarcador() {
+  const total = RETOS.length;
+  $('puntos').textContent = String(estado.puntos);
+  $('texto-progreso').textContent = 'Reto ' + Math.min(estado.indice + 1, total) + ' de ' + total;
+  const cajas = $('progreso');
+  cajas.replaceChildren();
+  RETOS.forEach(function (_, n) {
+    const clase = n < estado.indice ? 'hecho' : n === estado.indice ? 'actual' : '';
+    cajas.append(crear('li', { className: clase }));
+  });
+  $('valor').textContent = 'Este reto vale ahora ' + valorActual() + ' puntos.';
+}
+
+function mostrarFeedback(tipo, titulo, texto) {
+  const caja = $('feedback');
+  caja.dataset.tipo = tipo;
+  caja.replaceChildren(crear('div', { className: 'aviso' }, [
+    crear('strong', { textContent: titulo }),
+    crear('p', { textContent: texto })
+  ]));
+}
+
+function limpiarFeedback() {
+  const caja = $('feedback');
+  delete caja.dataset.tipo;
+  caja.replaceChildren();
+}
+
+function nodoCasillero(nombre) {
+  return document.querySelector('.casillero[data-variable="' + nombre + '"]');
+}
+
+function pintarCasilleros(reto, conEntradas) {
+  const zona = $('casilleros');
+  zona.replaceChildren();
+  reto.casilleros.forEach(function (nombre) {
+    const hueco = crear('div', { className: 'hueco' });
+    if (conEntradas) {
+      const entrada = crear('input', { type: 'text', inputMode: 'decimal', id: 'respuesta-' + nombre });
+      entrada.dataset.respuesta = nombre;
+      entrada.setAttribute('aria-label', 'Valor final de ' + nombre);
+      hueco.append(entrada);
+    } else {
+      hueco.append(crear('span', { className: 'vacio', textContent: 'vacío' }));
+    }
+    const casillero = crear('div', { className: 'casillero' }, [
+      crear('span', { className: 'etiqueta', textContent: nombre }),
+      hueco
+    ]);
+    casillero.dataset.variable = nombre;
+    zona.append(casillero);
+  });
+}
+
+function ponerNota(nombre, valor) {
+  const hueco = nodoCasillero(nombre).querySelector('.hueco');
+  const anteriores = hueco.querySelectorAll('.nota, .vacio, input');
+  anteriores.forEach(function (viejo) {
+    if (SIN_MOVIMIENTO || !viejo.classList.contains('nota')) {
+      viejo.remove();
+    } else {
+      viejo.classList.remove('entra');
+      viejo.classList.add('sale');
+      setTimeout(function () { viejo.remove(); }, 400);
+    }
+  });
+  const nota = crear('div', { className: 'nota entra', textContent: String(valor) });
+  nota.dataset.valor = String(valor);
+  hueco.append(nota);
+}
+
+function pintarTicket(modo) {
+  const ticket = $('ticket');
+  ticket.replaceChildren();
+  ticket.hidden = modo === 'oculto';
+  if (modo === 'entrada') {
+    const entrada = crear('input', { type: 'text', inputMode: 'decimal', id: 'respuesta-salida' });
+    entrada.dataset.respuesta = 'salida';
+    ticket.append(crear('label', { htmlFor: 'respuesta-salida', textContent: 'Lo que aparecerá en pantalla' }), entrada);
+  } else if (modo === 'salida') {
+    ticket.append(crear('span', { textContent: 'En pantalla' }), crear('output', { id: 'salida' }));
+  }
+}
+
+function pintarCodigo(lineas) {
+  $('codigo').replaceChildren.apply($('codigo'), lineas.map(function (l) {
+    return crear('li', { textContent: l });
+  }));
+}
+
+function pintarPrograma(reto) {
+  const lista = $('codigo');
+  lista.replaceChildren();
+  reto.inicio.forEach(function (l) { lista.append(crear('li', { textContent: l })); });
+  estado.programa.forEach(function (bloque, n) {
+    const subir = crear('button', { type: 'button', className: 'mini', textContent: '↑', disabled: n === 0 });
+    const bajar = crear('button', { type: 'button', className: 'mini', textContent: '↓', disabled: n === estado.programa.length - 1 });
+    const quitar = crear('button', { type: 'button', className: 'mini', textContent: '×' });
+    subir.setAttribute('aria-label', 'Subir ' + bloque);
+    bajar.setAttribute('aria-label', 'Bajar ' + bloque);
+    quitar.setAttribute('aria-label', 'Quitar ' + bloque);
+    subir.addEventListener('click', function () { moverBloque(n, -1); });
+    bajar.addEventListener('click', function () { moverBloque(n, 1); });
+    quitar.addEventListener('click', function () { quitarBloque(n); });
+    const fila = crear('div', { className: 'linea' }, [
+      crear('span', { textContent: bloque }),
+      crear('span', { className: 'acciones' }, [subir, bajar, quitar])
+    ]);
+    const li = crear('li', {}, [fila]);
+    li.dataset.linea = bloque;
+    lista.append(li);
+  });
+  $('vacio-programa').hidden = estado.programa.length > 0;
+
+  const zona = $('bloques');
+  zona.replaceChildren();
+  estado.disponibles.forEach(function (bloque) {
+    const boton = crear('button', { type: 'button', className: 'bloque', textContent: bloque });
+    boton.dataset.bloque = bloque;
+    boton.addEventListener('click', function () { anadirBloque(bloque); });
+    zona.append(boton);
+  });
+  if (!estado.disponibles.length) {
+    zona.append(crear('span', { className: 'vacio-programa', textContent: 'Has usado todos los bloques.' }));
+  }
+}
+
+function anadirBloque(bloque) {
+  if (estado.ocupado) return;
+  estado.disponibles = estado.disponibles.filter(function (b) { return b !== bloque; });
+  estado.programa.push(bloque);
+  pintarPrograma(RETOS[estado.indice]);
+}
+
+function quitarBloque(n) {
+  if (estado.ocupado) return;
+  estado.disponibles.push(estado.programa[n]);
+  estado.programa.splice(n, 1);
+  pintarPrograma(RETOS[estado.indice]);
+}
+
+function moverBloque(n, cambio) {
+  if (estado.ocupado) return;
+  const destino = n + cambio;
+  const copia = estado.programa[n];
+  estado.programa[n] = estado.programa[destino];
+  estado.programa[destino] = copia;
+  pintarPrograma(RETOS[estado.indice]);
+}
+
+function pintarCompletar(reto) {
+  const lista = $('codigo');
+  lista.replaceChildren();
+  reto.plantilla.forEach(function (parte) {
+    if (parte.prefijo) {
+      const entrada = crear('input', { type: 'text', id: 'expresion', spellcheck: false, autocapitalize: 'off' });
+      entrada.dataset.respuesta = 'expresion';
+      entrada.setAttribute('aria-label', 'Completa la línea: ' + parte.prefijo);
+      lista.append(crear('li', {}, [parte.prefijo, entrada]));
+    } else {
+      lista.append(crear('li', { textContent: parte.texto }));
+    }
+  });
+}
+
+function pintarReto() {
+  const reto = RETOS[estado.indice];
+  estado.fallos = 0;
+  estado.ocupado = false;
+  estado.programa = [];
+  estado.disponibles = reto.bloques ? reto.bloques.slice() : [];
+  $('titulo-reto').textContent = reto.titulo;
+  $('objetivo').textContent = reto.objetivo;
+  $('siguiente').hidden = true;
+  $('comprobar').hidden = false;
+  $('comprobar').disabled = false;
+  $('vacio-programa').hidden = true;
+  $('bandeja').hidden = reto.tipo !== 'ordenar';
+  limpiarFeedback();
+
+  if (reto.tipo === 'predecir') {
+    $('titulo-hoja').textContent = 'Código';
+    $('comprobar').textContent = 'Comprobar';
+    pintarCodigo(reto.codigo);
+    pintarCasilleros(reto, reto.pide === 'casilleros');
+    pintarTicket(reto.pide === 'salida' ? 'entrada' : 'oculto');
+  } else if (reto.tipo === 'ordenar') {
+    $('titulo-hoja').textContent = 'Tu programa';
+    $('comprobar').textContent = 'Ejecutar programa';
+    pintarPrograma(reto);
+    pintarCasilleros(reto, false);
+    pintarTicket('oculto');
+  } else {
+    $('titulo-hoja').textContent = 'Código';
+    $('comprobar').textContent = 'Ejecutar programa';
+    pintarCompletar(reto);
+    pintarCasilleros(reto, false);
+    pintarTicket('salida');
+  }
+  pintarMarcador();
+}
+
+function marcarLinea(n) {
+  Array.from($('codigo').children).forEach(function (li, i) {
+    li.classList.toggle('activa', i === n);
+  });
+}
+
+async function animar(reto, resultado) {
+  pintarCasilleros(reto, false);
+  if (reto.tipo === 'completar') pintarTicket('salida');
+  if (reto.pide === 'salida') pintarTicket('salida');
+  for (const paso of resultado.pasos) {
+    marcarLinea(paso.linea);
+    if (paso.variable) ponerNota(paso.variable, paso.valor);
+    if (paso.imprime !== undefined) $('salida').textContent = String(paso.imprime);
+    await espera(PAUSA);
+  }
+  marcarLinea(-1);
+}
+
+function registrarFallo(diagnostico) {
+  const reto = RETOS[estado.indice];
+  estado.fallos += 1;
+  const n = Math.min(estado.fallos, reto.pistas.length);
+  const pista = reto.pistas[n - 1];
+  mostrarFeedback('pista', 'Intento ' + estado.fallos + ' sin acertar. Pista ' + n + ' de ' + reto.pistas.length + ':',
+    (diagnostico ? diagnostico + ' ' : '') + pista);
+  pintarMarcador();
+}
+
+function registrarAcierto() {
+  const reto = RETOS[estado.indice];
+  const ganados = valorActual();
+  estado.puntos += ganados;
+  $('puntos').textContent = String(estado.puntos);
+  mostrarFeedback('exito', '¡Correcto! Has ganado ' + ganados + ' puntos.', reto.exito);
+  $('valor').textContent = '';
+  $('comprobar').hidden = true;
+  $('siguiente').hidden = false;
+  $('siguiente').textContent = estado.indice === RETOS.length - 1 ? 'Ver resultado' : 'Siguiente reto';
+  $('siguiente').focus();
+}
+
+function leerNumero(texto) {
+  const limpio = texto.trim().replace(',', '.');
+  return /^-?\d+(\.\d+)?$/.test(limpio) ? Number(limpio) : null;
+}
+
+async function comprobarPrediccion(reto) {
+  const real = ejecutar(reto.codigo);
+  const entradas = Array.from(document.querySelectorAll('[data-respuesta]'));
+  const leidos = entradas.map(function (e) { return leerNumero(e.value); });
+  const hueco = leidos.indexOf(null);
+  if (hueco !== -1) {
+    mostrarFeedback('aviso', 'Falta un número', 'Escribe un número en cada espacio para poder comprobarlo. Esto no te resta puntos.');
+    entradas[hueco].focus();
+    return;
+  }
+  let correcto = true;
+  document.querySelectorAll('.casillero').forEach(function (c) { c.classList.remove('mal', 'bien'); });
+  entradas.forEach(function (entrada, n) {
+    const nombre = entrada.dataset.respuesta;
+    const esperado = nombre === 'salida' ? real.salida[real.salida.length - 1] : real.vars[nombre];
+    const bien = leidos[n] === esperado;
+    if (!bien) correcto = false;
+    if (nombre !== 'salida') nodoCasillero(nombre).classList.add(bien ? 'bien' : 'mal');
+  });
+  if (!correcto) {
+    registrarFallo(reto.pide === 'casilleros' ? 'Revisa los casilleros en rojo.' : '');
+    return;
+  }
+  await animar(reto, real);
+  registrarAcierto();
+}
+
+async function comprobarPrograma(reto) {
+  if (!estado.programa.length) {
+    mostrarFeedback('aviso', 'Tu programa está vacío', 'Añade al menos un bloque antes de ejecutarlo. Esto no te resta puntos.');
+    return;
+  }
+  const lineas = reto.inicio.concat(estado.programa);
+  const resultado = ejecutar(lineas);
+  await animar(reto, resultado);
+  if (resultado.error) {
+    const li = $('codigo').children[resultado.lineaError];
+    if (li) li.classList.add('con-error');
+    registrarFallo('La línea ' + (resultado.lineaError + 1) + ' usa ' + resultado.error.nombre + ', pero ese casillero aún está vacío.');
+    return;
+  }
+  const fallidos = Object.keys(reto.meta).filter(function (nombre) {
+    return resultado.vars[nombre] !== reto.meta[nombre];
+  });
+  if (fallidos.length) {
+    const nombre = fallidos[0];
+    const obtenido = resultado.vars[nombre];
+    registrarFallo(obtenido === undefined
+      ? 'El programa terminó sin guardar nada en ' + nombre + '.'
+      : nombre + ' terminó con ' + obtenido + ' y buscamos ' + reto.meta[nombre] + '.');
+    return;
+  }
+  registrarAcierto();
+}
+
+async function comprobarCompletar(reto) {
+  const entrada = $('expresion');
+  const expresion = entrada.value.trim();
+  if (!expresion) {
+    mostrarFeedback('aviso', 'Falta completar la línea', 'Escribe algo después de doble = para poder ejecutarla. Esto no te resta puntos.');
+    entrada.focus();
+    return;
+  }
+  const variable = reto.variable;
+  let resultados;
+  try {
+    resultados = reto.casos.map(function (valor) {
+      const vars = {};
+      vars[variable] = valor;
+      return { valor: valor, obtenido: evaluar(expresion, vars), esperado: reto.esperado(valor) };
+    });
+  } catch (error) {
+    if (error instanceof ErrorCasillero) {
+      mostrarFeedback('aviso', 'Ese casillero no existe', 'No hay ningún casillero llamado ' + error.nombre + '. Aquí puedes usar ' + variable + '. Esto no te resta puntos.');
+    } else if (error instanceof ErrorExpresion) {
+      mostrarFeedback('aviso', 'No se puede leer esa línea', 'Usa números, nombres de casilleros y los símbolos + - * /. Esto no te resta puntos.');
+    } else {
+      throw error;
+    }
+    return;
+  }
+  const fallo = resultados.find(function (r) { return r.obtenido !== r.esperado; });
+  if (fallo) {
+    const acerto = resultados[0] !== fallo;
+    registrarFallo((acerto ? 'Con ' + variable + ' = ' + resultados[0].valor + ' funciona, pero no' : 'No funciona') +
+      ' con ' + variable + ' = ' + fallo.valor + ': doble terminó en ' + fallo.obtenido + '.');
+    return;
+  }
+  const programa = ['monedas = ' + reto.casos[0], 'doble = ' + expresion, 'imprimir(doble)'];
+  entrada.readOnly = true;
+  await animar(reto, ejecutar(programa));
+  registrarAcierto();
+}
+
+$('formulario').addEventListener('submit', async function (evento) {
+  evento.preventDefault();
+  if (estado.ocupado || !$('siguiente').hidden) return;
+  const reto = RETOS[estado.indice];
+  estado.ocupado = true;
+  $('comprobar').disabled = true;
+  try {
+    if (reto.tipo === 'predecir') await comprobarPrediccion(reto);
+    else if (reto.tipo === 'ordenar') await comprobarPrograma(reto);
+    else await comprobarCompletar(reto);
+  } finally {
+    estado.ocupado = false;
+    $('comprobar').disabled = false;
+  }
+});
+
+function leerMejor() {
+  try { return Number(localStorage.getItem(CLAVE_MEJOR)) || 0; } catch (e) { return 0; }
+}
+
+function guardarMejor(valor) {
+  try { localStorage.setItem(CLAVE_MEJOR, String(valor)); } catch (e) { /* sin almacenamiento: no se guarda el récord */ }
+}
+
+function mostrarFinal() {
+  const anterior = leerMejor();
+  const mejor = Math.max(anterior, estado.puntos);
+  guardarMejor(mejor);
+  $('juego').hidden = true;
+  $('final').hidden = false;
+  $('total').textContent = String(estado.puntos);
+  $('mejor').textContent = estado.puntos > anterior && anterior > 0
+    ? 'Es tu nuevo récord.'
+    : anterior > 0 ? 'Tu récord es de ' + mejor + ' puntos.' : '';
+  $('texto-progreso').textContent = 'Retos completados';
+  Array.from($('progreso').children).forEach(function (li) { li.className = 'hecho'; });
+  $('reiniciar').focus();
+}
+
+$('siguiente').addEventListener('click', function () {
+  estado.indice += 1;
+  if (estado.indice >= RETOS.length) {
+    mostrarFinal();
+    return;
+  }
+  pintarReto();
+  const primero = document.querySelector('[data-respuesta]');
+  if (primero) primero.focus();
+  window.scrollTo({ top: $('juego').offsetTop - 70, behavior: SIN_MOVIMIENTO ? 'auto' : 'smooth' });
+});
+
+$('reiniciar').addEventListener('click', function () {
+  estado.indice = 0;
+  estado.puntos = 0;
+  $('final').hidden = true;
+  $('juego').hidden = false;
+  pintarReto();
+});
+
+pintarReto();
+</script>
+</body>
+</html>
