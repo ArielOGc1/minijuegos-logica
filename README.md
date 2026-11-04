@@ -1,17 +1,17 @@
-# Minijuegos de lógica
+# Retos de Python y SQL
 
-Minijuegos en español con retos de algoritmos y datos en Python y SQL. El código se ejecuta en el navegador, sin instalar nada.
+Ejercicios en español de algoritmos y datos. Se resuelven en local con Python y SQLite, con pistas y solución en la página de cada entrega.
 
-Para jugar: https://arielogc1.github.io/minijuegos-logica/
+Para practicar: https://arielogc1.github.io/minijuegos-logica/
 
-- `fuentes/`: los retos de cada entrega, desde la 2 en adelante.
-- `juegos/`: los juegos ya construidos, un archivo HTML autocontenido por concepto.
-- `herramientas/kit/`: editor, ejecución de Python y SQL, puntuación y pistas, comunes a todos los juegos.
+- `fuentes/`: enunciados, datos, pistas y soluciones de cada entrega, desde la 3 en adelante.
+- `juegos/`: las páginas ya construidas. Las entregas 1 y 2 son juegos de navegador y ya no se regeneran.
+- `herramientas/`: genera y verifica cada entrega, y genera la portada.
 - `registro.json`: temario y estado de cada concepto.
 - `AGENTE.md`: instrucciones del agente que crea cada entrega.
-- `pruebas/`: juegan cada minijuego en un navegador real.
+- `pruebas/`: comprueban las páginas en un navegador real.
 
-Para construir los juegos, generar la portada y ejecutar las pruebas:
+Para verificar y construir las entregas, generar la portada y ejecutar las pruebas:
 
 ```bash
 npm install

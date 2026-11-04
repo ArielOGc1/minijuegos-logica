@@ -22,7 +22,16 @@
       "fecha": "2026-11-03",
       "mecanicas": ["escribir funciones de Python con casos ocultos", "escribir consultas SQL con datos ocultos", "predecir el resultado de una consulta"]
     },
-    { "orden": 3, "id": "busqueda-diccionarios", "nombre": "Búsqueda con diccionarios y duplicados", "estado": "pendiente", "enfoque": "Python: pares que suman un objetivo, detectar duplicados. SQL: filas duplicadas con GROUP BY y HAVING, autouniones." },
+    {
+      "orden": 3,
+      "id": "busqueda-diccionarios",
+      "nombre": "Búsqueda con diccionarios y duplicados",
+      "estado": "publicado",
+      "titulo": "Los repetidos",
+      "archivo": "juegos/03-busqueda-diccionarios.html",
+      "fecha": "2026-11-03",
+      "enfoque": "Python: pares que suman un objetivo, detectar duplicados. SQL: filas duplicadas con GROUP BY y HAVING, autouniones."
+    },
     { "orden": 4, "id": "limpieza-datos", "nombre": "Limpieza de datos", "estado": "pendiente", "enfoque": "Python: normalizar textos, descartar valores vacíos, quitar duplicados conservando el orden. SQL: COALESCE, DISTINCT, TRIM, LOWER, CASE." },
     { "orden": 5, "id": "cruzar-tablas", "nombre": "Cruzar tablas", "estado": "pendiente", "enfoque": "Python: combinar listas de registros usando un diccionario como índice. SQL: INNER JOIN, LEFT JOIN, encontrar filas sin pareja." },
     { "orden": 6, "id": "dos-punteros", "nombre": "Dos punteros y orden", "estado": "pendiente", "enfoque": "Python: palíndromos, combinar listas ordenadas, quitar duplicados en una lista ordenada. SQL: ORDER BY con LIMIT y OFFSET, el segundo valor más alto." },

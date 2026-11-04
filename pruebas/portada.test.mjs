@@ -23,7 +23,7 @@ test('la portada enlaza todas las entregas y cada una abre sin errores', async (
     await p.click(`a.hueco[href="${c.archivo}"]`);
     await p.waitForLoadState('load');
     assert.ok(p.url().endsWith(c.archivo), `No se abrió ${c.archivo}`);
-    assert.ok(await p.isVisible('#puntos'), `${c.archivo} no muestra la puntuación`);
+    assert.ok(await p.isVisible('.marcador'), `${c.archivo} no muestra el progreso`);
     await p.click('a[href="../index.html"]');
     await p.waitForSelector('.muro');
   }

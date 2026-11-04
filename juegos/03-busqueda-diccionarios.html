@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Los repetidos: búsqueda con diccionarios y duplicados | Retos de Python y SQL</title>
+<meta name="description" content="Ejercicios de Python y SQL para buscar con diccionarios y detectar datos duplicados, con pistas y solución.">
+<link rel="icon" href="data:,">
+<style>
+:root {
+  color-scheme: light;
+  --papel: #E8EEF6;
+  --tinta: #14264F;
+  --casillero: #1F46A8;
+  --hueco: #0F2A6B;
+  --nota: #FFD23F;
+  --blanco: #FFFFFF;
+  --exito: #0B6E4F;
+  --pista: #A01D45;
+  --titulo: Rockwell, "Roboto Slab", "Sitka Text", Georgia, serif;
+  --texto: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --codigo: "Cascadia Code", Consolas, ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 60px; }
+body { margin: 0; background: var(--papel); color: var(--tinta); font: 1.0625rem/1.55 var(--texto); }
+a { color: inherit; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--pista); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.ancho { width: min(100% - 32px, 860px); margin-inline: auto; }
+
+.banner { background: var(--casillero); color: var(--blanco); padding: 1rem 0 1.5rem; }
+.banner a { font-size: .95rem; }
+.banner h1 { margin: .4rem 0 0; font: 700 clamp(2.5rem, 9vw, 4.25rem)/1.02 var(--titulo); color: var(--nota); }
+.banner p { margin: .25rem 0 0; font-size: 1.05rem; }
+
+.marcador { position: sticky; top: 0; z-index: 2; background: var(--tinta); color: var(--blanco); padding: .5rem 0; }
+.marcador .ancho { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+#progreso { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+#progreso li { width: 18px; height: 18px; background: var(--hueco); border: 2px solid #5D7CC9; border-radius: 2px; }
+#progreso li.hecho { background: var(--nota); border-color: var(--nota); }
+.cuenta { white-space: nowrap; }
+#hechos { font: 700 1.5rem/1 var(--titulo); color: var(--nota); }
+
+.explicacion { max-width: 72ch; margin-block: 1.5rem; font-size: 1.125rem; }
+code { font-family: var(--codigo); font-size: .92em; background: var(--blanco); padding: .05em .3em; border-radius: 3px; overflow-wrap: anywhere; }
+
+h2 { margin: 0; font: 700 1.5rem/1.2 var(--titulo); }
+.como { margin-bottom: 2rem; padding: 1rem 1.1rem 1.2rem; background: var(--blanco); border: 2px solid var(--tinta); border-radius: 4px; }
+.como ol { margin: .6rem 0 1rem; padding-left: 1.4rem; }
+.como li + li { margin-top: .2rem; }
+.como code { background: var(--papel); }
+
+.ejercicio { padding-block: 1.5rem; border-top: 2px solid #AEBBD3; }
+.encabezado { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.lenguaje { padding: .05rem .5rem; background: var(--nota); border: 2px solid var(--tinta); border-radius: 3px; font-weight: 700; font-size: .9rem; }
+.enunciado { margin: .5rem 0 .9rem; max-width: 72ch; }
+
+.datos { margin: 0 0 1rem; }
+figcaption { margin-bottom: .3rem; font-weight: 600; font-size: .95rem; }
+.desplazable { overflow-x: auto; border: 2px solid var(--tinta); border-radius: 4px; background: var(--blanco); }
+table { width: 100%; border-collapse: collapse; font: .92rem/1.35 var(--codigo); }
+th, td { padding: .3rem .55rem; text-align: left; white-space: nowrap; border-bottom: 1px solid #D5DDEB; }
+th { background: var(--casillero); color: var(--blanco); font-weight: 600; }
+tbody tr:last-child td { border-bottom: 0; }
+td.nulo { color: var(--pista); font-style: italic; }
+
+.ejemplos { margin: 0 0 1rem; padding: .6rem .75rem; list-style: none; background: var(--blanco); border: 2px solid var(--tinta); border-radius: 4px; }
+.ejemplos li + li { margin-top: .35rem; }
+.ejemplos code { background: var(--papel); }
+
+.pistas { margin: 0 0 .75rem; padding: 0; list-style: none; }
+.pistas li { max-width: 72ch; padding: .5rem .8rem; background: #FFF6CC; border-left: 6px solid var(--nota); }
+.pistas li + li { margin-top: 4px; }
+.pistas code { background: var(--blanco); }
+
+.mandos { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.25rem; margin-bottom: .9rem; }
+.boton {
+  min-height: 46px; padding: .45rem 1.05rem; display: inline-flex; align-items: center;
+  background: var(--nota); color: var(--tinta); text-decoration: none; font-weight: 700; cursor: pointer;
+  border: 2px solid var(--tinta); border-radius: 4px; box-shadow: 0 3px 0 var(--tinta);
+  overflow-wrap: anywhere;
+}
+.boton:hover:not(:disabled) { background: #FFE27A; }
+.boton:active:not(:disabled) { transform: translateY(3px); box-shadow: none; }
+.boton.sobrio { background: var(--blanco); }
+.boton:disabled { opacity: .55; box-shadow: none; cursor: default; }
+.hecho { display: inline-flex; align-items: center; gap: .45rem; min-height: 44px; cursor: pointer; font-weight: 600; }
+.hecho input { width: 22px; height: 22px; accent-color: var(--exito); }
+
+.solucion summary {
+  width: fit-content; min-height: 44px; display: flex; align-items: center; cursor: pointer;
+  font-weight: 700; text-decoration: underline;
+}
+.solucion pre { margin: .3rem 0 .6rem; padding: .7rem .8rem; background: var(--hueco); color: #F2F6FF; border-radius: 4px; overflow-x: auto; }
+.solucion pre code { background: transparent; padding: 0; color: inherit; font-size: .95rem; line-height: 1.5; overflow-wrap: normal; }
+.solucion p { margin: 0; max-width: 72ch; }
+</style>
+</head>
+<body>
+<header class="banner">
+  <div class="ancho">
+    <a href="../index.html">Todas las entregas</a>
+    <h1>Los repetidos</h1>
+    <p>Entrega 3: búsqueda con diccionarios y duplicados</p>
+  </div>
+</header>
+<div class="marcador">
+  <div class="ancho">
+    <ol id="progreso" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li></ol>
+    <div class="cuenta"><span id="hechos">0</span> de 6 resueltos</div>
+  </div>
+</div>
+<main class="ancho">
+  <p class="explicacion">Buscar en una lista obliga a recorrerla entera, pero un diccionario o un conjunto encuentra un valor casi al instante. Esa diferencia convierte muchos problemas de dos bucles en uno solo, y es la misma idea que hay detrás de detectar duplicados en una tabla con <code>GROUP BY</code> y <code>HAVING</code>.</p>
+  <section class="como">
+    <h2>Cómo practicar</h2>
+    <ol>
+      <li>Descarga el archivo y ábrelo en tu editor.</li>
+      <li>Completa las funciones y las consultas.</li>
+      <li>Ejecuta <code>python entrega_03.py</code> para ver qué casos pasan. Solo necesitas Python: SQLite viene incluido.</li>
+      <li>Si te atascas, pide una pista. Al terminar, compara con la solución.</li>
+    </ol>
+    <a class="boton" id="descargar" href="data:text/x-python;base64,IyBFbnRyZWdhIDM6IELDunNxdWVkYSBjb24gZGljY2lvbmFyaW9zIHkgZHVwbGljYWRvcwojIENvbXBsZXRhIGxhcyBmdW5jaW9uZXMgeSBsYXMgY29uc3VsdGFzLCB5IGVqZWN1dGEgZXN0ZSBhcmNoaXZvOgojICAgICBweXRob24gZW50cmVnYV8wMy5weQojIFNvbG8gbmVjZXNpdGFzIFB5dGhvbjogU1FMaXRlIHZpZW5lIGluY2x1aWRvLgoKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgRWplcmNpY2lvIDE6IElkZW50aWZpY2Fkb3JlcyByZXBldGlkb3MgKFB5dGhvbikKIyBFc2NyaWJlIHRpZW5lX2R1cGxpY2Fkb3MgcGFyYSBxdWUgZGV2dWVsdmEgVHJ1ZSBzaSBhbGfDum4gaWQgYXBhcmVjZSBtw6FzIGRlCiMgdW5hIHZleiB5IEZhbHNlIHNpIG5vLiBMb3MgcmVwZXRpZG9zIG5vIHRpZW5lbiBwb3IgcXXDqSBlc3RhciBzZWd1aWRvcy4KIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCmRlZiB0aWVuZV9kdXBsaWNhZG9zKGlkcyk6CiAgICAjIEVzY3JpYmUgdHUgc29sdWNpw7NuIGFxdcOtIHkgYm9ycmEgbGEgbMOtbmVhIGRlIGFiYWpvCiAgICByYWlzZSBOb3RJbXBsZW1lbnRlZEVycm9yCgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyBFamVyY2ljaW8gMjogQ29ycmVvcyByZXBldGlkb3MgKFNRTCkKIyBPYnTDqW4gbG9zIGNvcnJlb3MgcXVlIGFwYXJlY2VuIG3DoXMgZGUgdW5hIHZleiB5IGN1w6FudGFzIHZlY2VzIGxvIGhhY2VuLgojIExhcyBmaWxhcyBzaW4gY29ycmVvIG5vIGN1ZW50YW4uIE9yZGVuYSBwb3IgdmVjZXMgZGUgbWF5b3IgYSBtZW5vciB5LCBzaQojIGhheSBlbXBhdGUsIHBvciBjb3JyZW8uCiMgVGFibGEgdXN1YXJpb3M6IGlkLCBlbWFpbAojIENvbHVtbmFzIGRlbCByZXN1bHRhZG86IGVtYWlsLCB2ZWNlcwojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KQ09OU1VMVEFfMiA9ICIiIgotLSBFc2NyaWJlIHR1IGNvbnN1bHRhIGFxdcOtCiIiIgoKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgRWplcmNpY2lvIDM6IERvcyBpbXBvcnRlcyBxdWUgc3VtYW4gZWwgdG90YWwgKFB5dGhvbikKIyBSZWNpYmVzIHVuYSBsaXN0YSBkZSBpbXBvcnRlcyB5IHVuIG9iamV0aXZvLiBFc2NyaWJlIGluZGljZXNfc3VtYSBwYXJhIHF1ZQojIGRldnVlbHZhIFtpLCBqXSwgY29uIGkgPCBqLCBsb3Mgw61uZGljZXMgZGUgbG9zIGRvcyBpbXBvcnRlcyBxdWUgc3VtYW4gZWwKIyBvYmpldGl2by4gSGF5IGNvbW8gbXVjaG8gdW5hIHBhcmVqYSB2w6FsaWRhLiBTaSBubyBleGlzdGUsIGRldnVlbHZlIFtdLiBVbgojIGltcG9ydGUgbm8gc2UgcHVlZGUgdXNhciBkb3MgdmVjZXMuCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpkZWYgaW5kaWNlc19zdW1hKGltcG9ydGVzLCBvYmpldGl2byk6CiAgICAjIEVzY3JpYmUgdHUgc29sdWNpw7NuIGFxdcOtIHkgYm9ycmEgbGEgbMOtbmVhIGRlIGFiYWpvCiAgICByYWlzZSBOb3RJbXBsZW1lbnRlZEVycm9yCgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyBFamVyY2ljaW8gNDogUGVkaWRvcyByZWdpc3RyYWRvcyBkb3MgdmVjZXMgKFNRTCkKIyBVbiBwZWRpZG8gZXN0w6EgZHVwbGljYWRvIHNpIGNvaW5jaWRlbiBlbCBjbGllbnRlLCBlbCBwcm9kdWN0byB5IGxhIGZlY2hhLgojIE9idMOpbiBlc2FzIGNvbWJpbmFjaW9uZXMgeSBjdcOhbnRhcyBjb3BpYXMgdGllbmUgY2FkYSB1bmEuIE9yZGVuYSBwb3IKIyBjbGllbnRlLCBwcm9kdWN0byB5IGZlY2hhLgojIFRhYmxhIHBlZGlkb3M6IGlkLCBjbGllbnRlLCBwcm9kdWN0bywgZmVjaGEKIyBDb2x1bW5hcyBkZWwgcmVzdWx0YWRvOiBjbGllbnRlLCBwcm9kdWN0bywgZmVjaGEsIGNvcGlhcwojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KQ09OU1VMVEFfNCA9ICIiIgotLSBFc2NyaWJlIHR1IGNvbnN1bHRhIGFxdcOtCiIiIgoKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgRWplcmNpY2lvIDU6IEVsIHByaW1lcm8gZW4gcmVwZXRpcnNlIChQeXRob24pCiMgRXNjcmliZSBwcmltZXJfcmVwZXRpZG8gcGFyYSBxdWUgZGV2dWVsdmEgZWwgaWQgY3V5YSBzZWd1bmRhIGFwYXJpY2nDs24KIyBsbGVnYSBhbnRlcy4gU2kgbmluZ3VubyBzZSByZXBpdGUsIGRldnVlbHZlIE5vbmUuCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpkZWYgcHJpbWVyX3JlcGV0aWRvKGlkcyk6CiAgICAjIEVzY3JpYmUgdHUgc29sdWNpw7NuIGFxdcOtIHkgYm9ycmEgbGEgbMOtbmVhIGRlIGFiYWpvCiAgICByYWlzZSBOb3RJbXBsZW1lbnRlZEVycm9yCgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyBFamVyY2ljaW8gNjogVXN1YXJpb3MgY29uIGVsIG1pc21vIHRlbMOpZm9ubyAoU1FMKQojIEVuY3VlbnRyYSBsYXMgcGFyZWphcyBkZSB1c3VhcmlvcyBxdWUgY29tcGFydGVuIHRlbMOpZm9uby4gQ2FkYSBwYXJlamEgZGViZQojIHNhbGlyIHVuYSBzb2xhIHZleiwgY29uIGVsIHVzdWFyaW8gZGUgaWQgbWVub3IgcHJpbWVyby4gT3JkZW5hIHBvcgojIHRlbMOpZm9ubywgaWQgZGVsIHByaW1lcm8gZSBpZCBkZWwgc2VndW5kby4KIyBUYWJsYSB1c3VhcmlvczogaWQsIG5vbWJyZSwgdGVsZWZvbm8KIyBDb2x1bW5hcyBkZWwgcmVzdWx0YWRvOiBub21icmVfMSwgbm9tYnJlXzIsIHRlbGVmb25vCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpDT05TVUxUQV82ID0gIiIiCi0tIEVzY3JpYmUgdHUgY29uc3VsdGEgYXF1w60KIiIiCgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyBObyBoYWNlIGZhbHRhIGNhbWJpYXIgbmFkYSBkZWJham8gZGUgZXN0YSBsw61uZWEKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRJVFVMTyA9ICJFbnRyZWdhIDM6IELDunNxdWVkYSBjb24gZGljY2lvbmFyaW9zIHkgZHVwbGljYWRvcyIKRUpFUkNJQ0lPUyA9IFsKICAgIHsibnVtZXJvIjogMSwgInRpdHVsbyI6ICJJZGVudGlmaWNhZG9yZXMgcmVwZXRpZG9zIiwgInRpcG8iOiAicHl0aG9uIiwgImZ1bmNpb24iOiB0aWVuZV9kdXBsaWNhZG9zLCAiY2Fzb3MiOiBbCiAgICAgICAgKFtbMSwgMiwgMywgMV1dLCBUcnVlKSwKICAgICAgICAoW1sxLCAyLCAzXV0sIEZhbHNlKSwKICAgICAgICAoW1tdXSwgRmFsc2UpLAogICAgICAgIChbWzcsIDddXSwgVHJ1ZSksCiAgICAgICAgKFtbMSwgMiwgMV1dLCBUcnVlKQogICAgXX0sCiAgICB7Im51bWVybyI6IDIsICJ0aXR1bG8iOiAiQ29ycmVvcyByZXBldGlkb3MiLCAidGlwbyI6ICJzcWwiLCAiY29uc3VsdGEiOiBDT05TVUxUQV8yLCAiY29uX29yZGVuIjogVHJ1ZSwgImRhdG9zIjogWwogICAgICAgICgiQ1JFQVRFIFRBQkxFIHVzdWFyaW9zIChpZCwgZW1haWwpOyBJTlNFUlQgSU5UTyB1c3VhcmlvcyBWQUxVRVMgKDEsICdhbmFAY29ycmVvLmVjJyksICgyLCAnbHVpc0Bjb3JyZW8uZWMnKSwgKDMsICdhbmFAY29ycmVvLmVjJyksICg0LCAnc29sQGNvcnJlby5lYycpLCAoNSwgJ2x1aXNAY29ycmVvLmVjJyksICg2LCAnYW5hQGNvcnJlby5lYycpLCAoNywgTlVMTCksICg4LCBOVUxMKTsiLCBbWyJhbmFAY29ycmVvLmVjIiwgM10sIFsibHVpc0Bjb3JyZW8uZWMiLCAyXV0pLAogICAgICAgICgiQ1JFQVRFIFRBQkxFIHVzdWFyaW9zIChpZCwgZW1haWwpOyBJTlNFUlQgSU5UTyB1c3VhcmlvcyBWQUxVRVMgKDEsICdiQGNvcnJlby5lYycpLCAoMiwgJ2FAY29ycmVvLmVjJyksICgzLCAnYkBjb3JyZW8uZWMnKSwgKDQsICdhQGNvcnJlby5lYycpLCAoNSwgJ2NAY29ycmVvLmVjJyksICg2LCBOVUxMKSwgKDcsIE5VTEwpOyIsIFtbImFAY29ycmVvLmVjIiwgMl0sIFsiYkBjb3JyZW8uZWMiLCAyXV0pCiAgICBdfSwKICAgIHsibnVtZXJvIjogMywgInRpdHVsbyI6ICJEb3MgaW1wb3J0ZXMgcXVlIHN1bWFuIGVsIHRvdGFsIiwgInRpcG8iOiAicHl0aG9uIiwgImZ1bmNpb24iOiBpbmRpY2VzX3N1bWEsICJjYXNvcyI6IFsKICAgICAgICAoW1syLCA3LCAxMSwgMTVdLCA5XSwgWzAsIDFdKSwKICAgICAgICAoW1szLCAyLCA0XSwgNl0sIFsxLCAyXSksCiAgICAgICAgKFtbMSwgMl0sIDEwXSwgW10pLAogICAgICAgIChbWzMsIDNdLCA2XSwgWzAsIDFdKSwKICAgICAgICAoW1stMSwgNSwgM10sIDJdLCBbMCwgMl0pLAogICAgICAgIChbWzAsIDQsIDMsIDBdLCAwXSwgWzAsIDNdKSwKICAgICAgICAoW1tdLCA1XSwgW10pCiAgICBdfSwKICAgIHsibnVtZXJvIjogNCwgInRpdHVsbyI6ICJQZWRpZG9zIHJlZ2lzdHJhZG9zIGRvcyB2ZWNlcyIsICJ0aXBvIjogInNxbCIsICJjb25zdWx0YSI6IENPTlNVTFRBXzQsICJjb25fb3JkZW4iOiBUcnVlLCAiZGF0b3MiOiBbCiAgICAgICAgKCJDUkVBVEUgVEFCTEUgcGVkaWRvcyAoaWQsIGNsaWVudGUsIHByb2R1Y3RvLCBmZWNoYSk7IElOU0VSVCBJTlRPIHBlZGlkb3MgVkFMVUVTICgxLCAnQW5hJywgJ3RlY2xhZG8nLCAnMjAyNi0xMC0wMScpLCAoMiwgJ0FuYScsICd0ZWNsYWRvJywgJzIwMjYtMTAtMDEnKSwgKDMsICdBbmEnLCAndGVjbGFkbycsICcyMDI2LTEwLTAyJyksICg0LCAnTHVpcycsICdyYXTDs24nLCAnMjAyNi0xMC0wMScpLCAoNSwgJ0x1aXMnLCAncmF0w7NuJywgJzIwMjYtMTAtMDEnKSwgKDYsICdMdWlzJywgJ3JhdMOzbicsICcyMDI2LTEwLTAxJyksICg3LCAnTWFydGEnLCAnbW9uaXRvcicsICcyMDI2LTEwLTAzJyk7IiwgW1siQW5hIiwgInRlY2xhZG8iLCAiMjAyNi0xMC0wMSIsIDJdLCBbIkx1aXMiLCAicmF0w7NuIiwgIjIwMjYtMTAtMDEiLCAzXV0pLAogICAgICAgICgiQ1JFQVRFIFRBQkxFIHBlZGlkb3MgKGlkLCBjbGllbnRlLCBwcm9kdWN0bywgZmVjaGEpOyBJTlNFUlQgSU5UTyBwZWRpZG9zIFZBTFVFUyAoMSwgJ0V2YScsICdjYWJsZScsICcyMDI2LTA5LTAxJyksICgyLCAnRXZhJywgJ2Z1bmRhJywgJzIwMjYtMDktMDEnKSwgKDMsICdJdsOhbicsICdjYWJsZScsICcyMDI2LTA5LTAxJyksICg0LCAnSXbDoW4nLCAnY2FibGUnLCAnMjAyNi0wOS0wMicpLCAoNSwgJ05vYScsICdjYWJsZScsICcyMDI2LTA5LTA1JyksICg2LCAnTm9hJywgJ2NhYmxlJywgJzIwMjYtMDktMDUnKTsiLCBbWyJOb2EiLCAiY2FibGUiLCAiMjAyNi0wOS0wNSIsIDJdXSkKICAgIF19LAogICAgeyJudW1lcm8iOiA1LCAidGl0dWxvIjogIkVsIHByaW1lcm8gZW4gcmVwZXRpcnNlIiwgInRpcG8iOiAicHl0aG9uIiwgImZ1bmNpb24iOiBwcmltZXJfcmVwZXRpZG8sICJjYXNvcyI6IFsKICAgICAgICAoW1sxLCAyLCAzLCAyLCAxXV0sIDIpLAogICAgICAgIChbWzUsIDEsIDUsIDFdXSwgNSksCiAgICAgICAgKFtbMSwgMiwgM11dLCBOb25lKSwKICAgICAgICAoW1tdXSwgTm9uZSksCiAgICAgICAgKFtbMiwgMl1dLCAyKSwKICAgICAgICAoW1siYSIsICJiIiwgImMiLCAiYiIsICJhIl1dLCAiYiIpCiAgICBdfSwKICAgIHsibnVtZXJvIjogNiwgInRpdHVsbyI6ICJVc3VhcmlvcyBjb24gZWwgbWlzbW8gdGVsw6lmb25vIiwgInRpcG8iOiAic3FsIiwgImNvbnN1bHRhIjogQ09OU1VMVEFfNiwgImNvbl9vcmRlbiI6IFRydWUsICJkYXRvcyI6IFsKICAgICAgICAoIkNSRUFURSBUQUJMRSB1c3VhcmlvcyAoaWQsIG5vbWJyZSwgdGVsZWZvbm8pOyBJTlNFUlQgSU5UTyB1c3VhcmlvcyBWQUxVRVMgKDEsICdBbmEnLCAnMDk5LTAxJyksICgyLCAnTHVpcycsICcwOTgtMDInKSwgKDMsICdNYXJ0YScsICcwOTktMDEnKSwgKDQsICdTb2wnLCBOVUxMKSwgKDUsICdJdsOhbicsICcwOTgtMDInKSwgKDYsICdOb2EnLCAnMDk5LTAxJyksICg3LCAnTGVvJywgTlVMTCksICg4LCAnRXZhJywgJzA5Ny0wMycpOyIsIFtbIkx1aXMiLCAiSXbDoW4iLCAiMDk4LTAyIl0sIFsiQW5hIiwgIk1hcnRhIiwgIjA5OS0wMSJdLCBbIkFuYSIsICJOb2EiLCAiMDk5LTAxIl0sIFsiTWFydGEiLCAiTm9hIiwgIjA5OS0wMSJdXSksCiAgICAgICAgKCJDUkVBVEUgVEFCTEUgdXN1YXJpb3MgKGlkLCBub21icmUsIHRlbGVmb25vKTsgSU5TRVJUIElOVE8gdXN1YXJpb3MgVkFMVUVTICgxLCAnUml0YScsICcxMTEnKSwgKDIsICdUaXRvJywgJzIyMicpLCAoMywgJ1VtYScsICcxMTEnKSwgKDQsICdWZXJhJywgTlVMTCksICg1LCAnWGF2aScsIE5VTEwpOyIsIFtbIlJpdGEiLCAiVW1hIiwgIjExMSJdXSkKICAgIF19Cl0KCmltcG9ydCBjb3B5CmltcG9ydCBzcWxpdGUzCmltcG9ydCBzeXMKCgpkZWYgX2lndWFsZXMoYSwgYik6CiAgICBpZiBpc2luc3RhbmNlKGEsIGZsb2F0KSBvciBpc2luc3RhbmNlKGIsIGZsb2F0KToKICAgICAgICB0cnk6CiAgICAgICAgICAgIHJldHVybiBhYnMoYSAtIGIpIDwgMWUtNgogICAgICAgIGV4Y2VwdCBUeXBlRXJyb3I6CiAgICAgICAgICAgIHJldHVybiBGYWxzZQogICAgaWYgaXNpbnN0YW5jZShhLCAobGlzdCwgdHVwbGUpKSBhbmQgaXNpbnN0YW5jZShiLCAobGlzdCwgdHVwbGUpKToKICAgICAgICByZXR1cm4gbGVuKGEpID09IGxlbihiKSBhbmQgYWxsKF9pZ3VhbGVzKHgsIHkpIGZvciB4LCB5IGluIHppcChhLCBiKSkKICAgIGlmIGlzaW5zdGFuY2UoYSwgZGljdCkgYW5kIGlzaW5zdGFuY2UoYiwgZGljdCk6CiAgICAgICAgcmV0dXJuIGEua2V5cygpID09IGIua2V5cygpIGFuZCBhbGwoX2lndWFsZXMoYVtrXSwgYltrXSkgZm9yIGsgaW4gYSkKICAgIHJldHVybiBhID09IGIKCgpkZWYgX3JldmlzYXJfcHl0aG9uKGVqZXJjaWNpbyk6CiAgICBub21icmUgPSBlamVyY2ljaW9bImZ1bmNpb24iXS5fX25hbWVfXwogICAgZm9yIGFyZ3MsIGVzcGVyYWRvIGluIGVqZXJjaWNpb1siY2Fzb3MiXToKICAgICAgICBsbGFtYWRhID0gZiJ7bm9tYnJlfSh7JywgJy5qb2luKHJlcHIoYSkgZm9yIGEgaW4gYXJncyl9KSIKICAgICAgICB0cnk6CiAgICAgICAgICAgIG9idGVuaWRvID0gZWplcmNpY2lvWyJmdW5jaW9uIl0oKmNvcHkuZGVlcGNvcHkoYXJncykpCiAgICAgICAgZXhjZXB0IE5vdEltcGxlbWVudGVkRXJyb3I6CiAgICAgICAgICAgIHJldHVybiAiU0lOIEVNUEVaQVIiLCBbXQogICAgICAgIGV4Y2VwdCBFeGNlcHRpb24gYXMgZXJyb3I6CiAgICAgICAgICAgIHJldHVybiAiRkFMTEEiLCBbZiJDYXNvOiB7bGxhbWFkYX0iLCBmIkVycm9yOiB7dHlwZShlcnJvcikuX19uYW1lX199OiB7ZXJyb3J9Il0KICAgICAgICBpZiBub3QgX2lndWFsZXMob2J0ZW5pZG8sIGVzcGVyYWRvKToKICAgICAgICAgICAgcmV0dXJuICJGQUxMQSIsIFtmIkNhc286IHtsbGFtYWRhfSIsIGYiRXNwZXJhZG86IHtlc3BlcmFkbyFyfSIsIGYiT2J0ZW5pZG86IHtvYnRlbmlkbyFyfSJdCiAgICByZXR1cm4gIlBBU0EiLCBbXQoKCmRlZiBfcmV2aXNhcl9zcWwoZWplcmNpY2lvKToKICAgIGxpbmVhcyA9IGVqZXJjaWNpb1siY29uc3VsdGEiXS5zcGxpdGxpbmVzKCkKICAgIGlmIG5vdCBhbnkobC5zdHJpcCgpIGFuZCBub3QgbC5zdHJpcCgpLnN0YXJ0c3dpdGgoIi0tIikgZm9yIGwgaW4gbGluZWFzKToKICAgICAgICByZXR1cm4gIlNJTiBFTVBFWkFSIiwgW10KICAgIGZvciBwcmVwYXJhY2lvbiwgZXNwZXJhZG8gaW4gZWplcmNpY2lvWyJkYXRvcyJdOgogICAgICAgIGNvbmV4aW9uID0gc3FsaXRlMy5jb25uZWN0KCI6bWVtb3J5OiIpCiAgICAgICAgY29uZXhpb24uZXhlY3V0ZXNjcmlwdChwcmVwYXJhY2lvbikKICAgICAgICB0cnk6CiAgICAgICAgICAgIG9idGVuaWRvID0gY29uZXhpb24uZXhlY3V0ZShlamVyY2ljaW9bImNvbnN1bHRhIl0pLmZldGNoYWxsKCkKICAgICAgICBleGNlcHQgc3FsaXRlMy5FcnJvciBhcyBlcnJvcjoKICAgICAgICAgICAgcmV0dXJuICJGQUxMQSIsIFtmIkVycm9yIGVuIGxhIGNvbnN1bHRhOiB7ZXJyb3J9Il0KICAgICAgICBmaW5hbGx5OgogICAgICAgICAgICBjb25leGlvbi5jb21taXQoKQogICAgICAgIGNvbmV4aW9uLmNsb3NlKCkKICAgICAgICBjb21wYXJhciA9IChvYnRlbmlkbywgZXNwZXJhZG8pCiAgICAgICAgaWYgbm90IGVqZXJjaWNpb1siY29uX29yZGVuIl06CiAgICAgICAgICAgIGNvbXBhcmFyID0gKHNvcnRlZChvYnRlbmlkbywga2V5PXJlcHIpLCBzb3J0ZWQoKHR1cGxlKGYpIGZvciBmIGluIGVzcGVyYWRvKSwga2V5PXJlcHIpKQogICAgICAgIGlmIG5vdCBfaWd1YWxlcygqY29tcGFyYXIpOgogICAgICAgICAgICByZXR1cm4gIkZBTExBIiwgWwogICAgICAgICAgICAgICAgZiJFc3BlcmFkbzoge1t0dXBsZShmKSBmb3IgZiBpbiBlc3BlcmFkb119IiwKICAgICAgICAgICAgICAgIGYiT2J0ZW5pZG86IHtvYnRlbmlkb30iCiAgICAgICAgICAgIF0KICAgIHJldHVybiAiUEFTQSIsIFtdCgoKZGVmIG1haW4oKToKICAgIHN5cy5zdGRvdXQucmVjb25maWd1cmUoZW5jb2Rpbmc9InV0Zi04IikKICAgIHByaW50KFRJVFVMTykKICAgIHByaW50KCkKICAgIGNvcnJlY3RvcyA9IDAKICAgIGZvciBlamVyY2ljaW8gaW4gRUpFUkNJQ0lPUzoKICAgICAgICByZXZpc2FyID0gX3JldmlzYXJfcHl0aG9uIGlmIGVqZXJjaWNpb1sidGlwbyJdID09ICJweXRob24iIGVsc2UgX3JldmlzYXJfc3FsCiAgICAgICAgZXN0YWRvLCBkZXRhbGxlcyA9IHJldmlzYXIoZWplcmNpY2lvKQogICAgICAgIHByaW50KGYie2VqZXJjaWNpb1snbnVtZXJvJ119LiB7ZWplcmNpY2lvWyd0aXR1bG8nXX06IHtlc3RhZG99IikKICAgICAgICBmb3IgZGV0YWxsZSBpbiBkZXRhbGxlczoKICAgICAgICAgICAgcHJpbnQoZiIgICB7ZGV0YWxsZX0iKQogICAgICAgIGlmIGVzdGFkbyA9PSAiUEFTQSI6CiAgICAgICAgICAgIGNvcnJlY3RvcyArPSAxCiAgICBwcmludCgpCiAgICBwcmludChmIlJlc3VsdGFkbzoge2NvcnJlY3Rvc30gZGUge2xlbihFSkVSQ0lDSU9TKX0gZWplcmNpY2lvcyBjb3JyZWN0b3MuIikKICAgIHJldHVybiAwIGlmIGNvcnJlY3RvcyA9PSBsZW4oRUpFUkNJQ0lPUykgZWxzZSAxCgoKaWYgX19uYW1lX18gPT0gIl9fbWFpbl9fIjoKICAgIHN5cy5leGl0KG1haW4oKSkK" download="entrega_03.py">Descargar entrega_03.py</a>
+  </section>
+  <article class="ejercicio" id="ejercicio-1" data-ejercicio="1">
+      <div class="encabezado"><span class="lenguaje">Python</span><h2>1. Identificadores repetidos</h2></div>
+      <p class="enunciado">Escribe <code>tiene_duplicados</code> para que devuelva <code>True</code> si algún id aparece más de una vez y <code>False</code> si no. Los repetidos no tienen por qué estar seguidos.</p>
+      <ul class="ejemplos"><li><code>tiene_duplicados([1, 2, 3, 1])</code> devuelve <code>True</code></li><li><code>tiene_duplicados([1, 2, 3])</code> devuelve <code>False</code></li></ul>
+      <ol class="pistas" aria-live="polite"><li hidden>Recorre los ids una vez y recuerda los que ya has visto.</li><li hidden>Un conjunto es la estructura adecuada para preguntar si ya viste un valor.</li><li hidden>Antes de añadir cada id, comprueba si ya está en el conjunto. Si está, ya tienes la respuesta.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>def tiene_duplicados(ids):
+    vistos = set()
+    for i in ids:
+        if i in vistos:
+            return True
+        vistos.add(i)
+    return False</code></pre>
+        <p>Cada consulta al conjunto es casi inmediata, así que el tiempo crece en proporción a la lista. También valdría <code>len(set(ids)) != len(ids)</code>, aunque esa versión no se detiene al encontrar el primer repetido.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-2" data-ejercicio="2">
+      <div class="encabezado"><span class="lenguaje">SQL</span><h2>2. Correos repetidos</h2></div>
+      <p class="enunciado">Obtén los correos que aparecen más de una vez y cuántas veces lo hacen. Las filas sin correo no cuentan. Ordena por veces de mayor a menor y, si hay empate, por correo.</p>
+      <figure class="datos">
+        <figcaption>Tabla usuarios</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>id</th><th>email</th></tr></thead>
+          <tbody><tr><td>1</td><td>ana@correo.ec</td></tr><tr><td>2</td><td>luis@correo.ec</td></tr><tr><td>3</td><td>ana@correo.ec</td></tr><tr><td>4</td><td>sol@correo.ec</td></tr><tr><td>5</td><td>luis@correo.ec</td></tr><tr><td>6</td><td>ana@correo.ec</td></tr><tr><td>7</td><td class="nulo">NULL</td></tr><tr><td>8</td><td class="nulo">NULL</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Resultado esperado</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>email</th><th>veces</th></tr></thead>
+          <tbody><tr><td>ana@correo.ec</td><td>3</td></tr><tr><td>luis@correo.ec</td><td>2</td></tr></tbody>
+        </table></div>
+      </figure>
+      <ol class="pistas" aria-live="polite"><li hidden>Agrupa por correo y cuenta las filas de cada grupo.</li><li hidden>Una condición sobre el conteo de un grupo no puede ir en <code>WHERE</code>.</li><li hidden><code>GROUP BY</code> reúne todos los NULL en un mismo grupo: tienes que descartarlos antes de agrupar.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>SELECT email, COUNT(*) AS veces
+FROM usuarios
+WHERE email IS NOT NULL
+GROUP BY email
+HAVING COUNT(*) &gt; 1
+ORDER BY veces DESC, email;</code></pre>
+        <p>La trampa está en los NULL: sin el <code>WHERE</code>, aparecen como un grupo más con dos filas. <code>WHERE</code> actúa sobre filas antes de agrupar y <code>HAVING</code> sobre los grupos ya formados.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-3" data-ejercicio="3">
+      <div class="encabezado"><span class="lenguaje">Python</span><h2>3. Dos importes que suman el total</h2></div>
+      <p class="enunciado">Recibes una lista de importes y un objetivo. Escribe <code>indices_suma</code> para que devuelva <code>[i, j]</code>, con <code>i &lt; j</code>, los índices de los dos importes que suman el objetivo. Hay como mucho una pareja válida. Si no existe, devuelve <code>[]</code>. Un importe no se puede usar dos veces.</p>
+      <ul class="ejemplos"><li><code>indices_suma([2, 7, 11, 15], 9)</code> devuelve <code>[0, 1]</code></li><li><code>indices_suma([3, 2, 4], 6)</code> devuelve <code>[1, 2]</code></li><li><code>indices_suma([1, 2], 10)</code> devuelve <code>[]</code></li></ul>
+      <ol class="pistas" aria-live="polite"><li hidden>Con dos bucles funciona, pero intenta resolverlo recorriendo la lista una sola vez.</li><li hidden>Para cada importe, ya sabes exactamente qué otro valor necesitas para llegar al objetivo.</li><li hidden>Guarda en un diccionario los importes ya vistos junto con su índice, y consúltalo antes de guardar el importe actual.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>def indices_suma(importes, objetivo):
+    vistos = {}
+    for j, importe in enumerate(importes):
+        falta = objetivo - importe
+        if falta in vistos:
+            return [vistos[falta], j]
+        vistos[importe] = j
+    return []</code></pre>
+        <p>Consultar antes de guardar evita usar el mismo importe dos veces y resuelve los valores repetidos, como en <code>[3, 3]</code>. Así se pasa de comparar todas las parejas a un único recorrido.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-4" data-ejercicio="4">
+      <div class="encabezado"><span class="lenguaje">SQL</span><h2>4. Pedidos registrados dos veces</h2></div>
+      <p class="enunciado">Un pedido está duplicado si coinciden el cliente, el producto y la fecha. Obtén esas combinaciones y cuántas copias tiene cada una. Ordena por cliente, producto y fecha.</p>
+      <figure class="datos">
+        <figcaption>Tabla pedidos</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>id</th><th>cliente</th><th>producto</th><th>fecha</th></tr></thead>
+          <tbody><tr><td>1</td><td>Ana</td><td>teclado</td><td>2026-10-01</td></tr><tr><td>2</td><td>Ana</td><td>teclado</td><td>2026-10-01</td></tr><tr><td>3</td><td>Ana</td><td>teclado</td><td>2026-10-02</td></tr><tr><td>4</td><td>Luis</td><td>ratón</td><td>2026-10-01</td></tr><tr><td>5</td><td>Luis</td><td>ratón</td><td>2026-10-01</td></tr><tr><td>6</td><td>Luis</td><td>ratón</td><td>2026-10-01</td></tr><tr><td>7</td><td>Marta</td><td>monitor</td><td>2026-10-03</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Resultado esperado</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>cliente</th><th>producto</th><th>fecha</th><th>copias</th></tr></thead>
+          <tbody><tr><td>Ana</td><td>teclado</td><td>2026-10-01</td><td>2</td></tr><tr><td>Luis</td><td>ratón</td><td>2026-10-01</td><td>3</td></tr></tbody>
+        </table></div>
+      </figure>
+      <ol class="pistas" aria-live="polite"><li hidden>Lo que define un duplicado es la combinación completa, no una sola columna.</li><li hidden><code>GROUP BY</code> admite varias columnas separadas por comas.</li><li hidden>Ana compró el mismo teclado dos días distintos: esas compras no deben sumarse en el mismo grupo.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>SELECT cliente, producto, fecha, COUNT(*) AS copias
+FROM pedidos
+GROUP BY cliente, producto, fecha
+HAVING COUNT(*) &gt; 1
+ORDER BY cliente, producto, fecha;</code></pre>
+        <p>Esta es la forma habitual de auditar duplicados en una tabla. Ten cuidado: SQLite permite seleccionar columnas que no están en el <code>GROUP BY</code> y elige un valor cualquiera, mientras que otros motores lo rechazan.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-5" data-ejercicio="5">
+      <div class="encabezado"><span class="lenguaje">Python</span><h2>5. El primero en repetirse</h2></div>
+      <p class="enunciado">Escribe <code>primer_repetido</code> para que devuelva el id cuya segunda aparición llega antes. Si ninguno se repite, devuelve <code>None</code>.</p>
+      <ul class="ejemplos"><li><code>primer_repetido([1, 2, 3, 2, 1])</code> devuelve <code>2</code></li><li><code>primer_repetido([5, 1, 5, 1])</code> devuelve <code>5</code></li><li><code>primer_repetido([1, 2, 3])</code> devuelve <code>None</code></li></ul>
+      <ol class="pistas" aria-live="polite"><li hidden>Fíjate en el primer ejemplo: el 1 aparece antes, pero el 2 es el primero en volver a aparecer.</li><li hidden>Solo puedes detectar una repetición en el momento en que la encuentras al recorrer la lista.</li><li hidden>Es muy parecido al primer ejercicio: cambia únicamente lo que devuelves.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>def primer_repetido(ids):
+    vistos = set()
+    for i in ids:
+        if i in vistos:
+            return i
+        vistos.add(i)
+    return None</code></pre>
+        <p>Contar con <code>ids.count</code> responde otra pregunta: cuál es el primer valor que tiene repetición. El conjunto detecta la repetición justo cuando ocurre, en orden de llegada.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-6" data-ejercicio="6">
+      <div class="encabezado"><span class="lenguaje">SQL</span><h2>6. Usuarios con el mismo teléfono</h2></div>
+      <p class="enunciado">Encuentra las parejas de usuarios que comparten teléfono. Cada pareja debe salir una sola vez, con el usuario de id menor primero. Ordena por teléfono, id del primero e id del segundo.</p>
+      <figure class="datos">
+        <figcaption>Tabla usuarios</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>id</th><th>nombre</th><th>telefono</th></tr></thead>
+          <tbody><tr><td>1</td><td>Ana</td><td>099-01</td></tr><tr><td>2</td><td>Luis</td><td>098-02</td></tr><tr><td>3</td><td>Marta</td><td>099-01</td></tr><tr><td>4</td><td>Sol</td><td class="nulo">NULL</td></tr><tr><td>5</td><td>Iván</td><td>098-02</td></tr><tr><td>6</td><td>Noa</td><td>099-01</td></tr><tr><td>7</td><td>Leo</td><td class="nulo">NULL</td></tr><tr><td>8</td><td>Eva</td><td>097-03</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Resultado esperado</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>nombre_1</th><th>nombre_2</th><th>telefono</th></tr></thead>
+          <tbody><tr><td>Luis</td><td>Iván</td><td>098-02</td></tr><tr><td>Ana</td><td>Marta</td><td>099-01</td></tr><tr><td>Ana</td><td>Noa</td><td>099-01</td></tr><tr><td>Marta</td><td>Noa</td><td>099-01</td></tr></tbody>
+        </table></div>
+      </figure>
+      <ol class="pistas" aria-live="polite"><li hidden>Necesitas comparar cada fila con otras de la misma tabla: une la tabla consigo misma usando dos alias.</li><li hidden>Unir por teléfono igual también empareja a cada usuario consigo mismo y genera cada pareja dos veces.</li><li hidden>Una sola condición sobre los ids de los dos alias resuelve los dos problemas a la vez.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>SELECT a.nombre AS nombre_1, b.nombre AS nombre_2, a.telefono
+FROM usuarios a
+JOIN usuarios b
+  ON a.telefono = b.telefono
+ AND a.id &lt; b.id
+ORDER BY a.telefono, a.id, b.id;</code></pre>
+        <p>Con <code>a.id &lt; b.id</code> nadie se empareja consigo mismo y cada pareja aparece una vez. Los NULL quedan fuera sin hacer nada, porque <code>NULL = NULL</code> no se considera verdadero en SQL.</p>
+      </details>
+    </article>
+</main>
+<script>
+const CLAVE_ENTREGA = "retos-python-sql:busqueda-diccionarios:hechos";
+const ejercicios = [...document.querySelectorAll('.ejercicio')];
+
+function leerHechos() {
+  try {
+    return JSON.parse(localStorage.getItem(CLAVE_ENTREGA)) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function guardarHechos(hechos) {
+  try {
+    localStorage.setItem(CLAVE_ENTREGA, JSON.stringify(hechos));
+  } catch (e) { /* sin almacenamiento: el contador dura hasta recargar */ }
+}
+
+function pintarAvance() {
+  const marcados = ejercicios.filter((e) => e.querySelector('.marcar').checked);
+  document.getElementById('hechos').textContent = String(marcados.length);
+  [...document.getElementById('progreso').children].forEach((caja, i) => {
+    caja.classList.toggle('hecho', i < marcados.length);
+  });
+  guardarHechos(marcados.map((e) => e.dataset.ejercicio));
+}
+
+const iniciales = leerHechos();
+ejercicios.forEach((ejercicio) => {
+  const marcar = ejercicio.querySelector('.marcar');
+  marcar.checked = iniciales.includes(ejercicio.dataset.ejercicio);
+  marcar.addEventListener('change', pintarAvance);
+
+  const boton = ejercicio.querySelector('.ver-pista');
+  const pistas = [...ejercicio.querySelectorAll('.pistas li')];
+  boton.addEventListener('click', () => {
+    const siguiente = pistas.findIndex((p) => p.hidden);
+    pistas[siguiente].hidden = false;
+    if (siguiente + 1 < pistas.length) {
+      boton.textContent = `Ver pista ${siguiente + 2} de ${pistas.length}`;
+    } else {
+      boton.textContent = 'No hay más pistas';
+      boton.disabled = true;
+    }
+  });
+});
+pintarAvance();
+</script>
+</body>
+</html>

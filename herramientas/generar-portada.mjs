@@ -32,8 +32,8 @@ const html = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Minijuegos de lógica</title>
-<meta name="description" content="Minijuegos en español con retos de algoritmos y datos en Python y SQL, sin instalar nada.">
+<title>Retos de Python y SQL</title>
+<meta name="description" content="Ejercicios en español de algoritmos y datos para resolver en local con Python y SQLite, con pistas y solución.">
 <link rel="icon" href="data:,">
 <style>
 :root {
@@ -68,12 +68,12 @@ a.hueco:hover .nota { transform: rotate(0); background: #FFE27A; }
 <body>
 <header>
   <div class="ancho">
-    <h1>Minijuegos de lógica</h1>
-    <p>Retos de algoritmos y datos con Python y SQL, un concepto cada vez. Tu código se ejecuta en el navegador: no hay nada que instalar.</p>
+    <h1>Retos de Python y SQL</h1>
+    <p>Ejercicios de algoritmos y datos, un concepto cada vez. Los resuelves en tu computador con Python y SQLite, y al terminar comparas con la solución.</p>
   </div>
 </header>
 <main class="ancho">
-  <p class="estado">${publicados} de ${conceptos.length} minijuegos disponibles. Empieza por el primero: cada uno se apoya en el anterior.</p>
+  <p class="estado">${publicados} de ${conceptos.length} entregas disponibles. Las dos primeras se juegan en el navegador; desde la tercera, resuelves los ejercicios en tu computador.</p>
   <ol class="muro">
       ${conceptos.map(fila).join('\n      ')}
   </ol>
