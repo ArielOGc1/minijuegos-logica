@@ -11,7 +11,7 @@ La carpeta del proyecto es el repositorio `ArielOGc1/minijuegos-logica`, publica
 3. Si un concepto ya tiene `"fecha"` igual a hoy, termina sin publicar nada. Esto evita duplicados cuando la app recupera una ejecución atrasada.
 4. Toma el primer concepto con `"estado": "pendiente"`, en orden. Nunca repitas uno publicado.
 5. Si no queda ninguno:
-   - Con `fin_de_curso_avisado` en `false`, crea el aviso de fin de curso (paso 6), pon ese campo en `true`, confirma y sube el cambio.
+   - Con `fin_de_curso_avisado` en `false`, envía el aviso de fin de curso (paso 6), pon ese campo en `true`, confirma y sube el cambio.
    - Con `fin_de_curso_avisado` en `true`, termina sin hacer nada.
    - No inventes conceptos nuevos ni publiques relleno.
 
@@ -56,7 +56,7 @@ Después:
 3. Ejecuta `npm run portada` y luego `npm test`.
 4. Mira las capturas de `capturas/` y corrige lo que se vea mal.
 
-Corrige el juego hasta que todo pase, sin debilitar ni omitir pruebas para conseguirlo. Si no lo consigues, no publiques: revierte tus cambios en `registro.json` e `index.html`, y crea el aviso de fallo (paso 6).
+Corrige el juego hasta que todo pase, sin debilitar ni omitir pruebas para conseguirlo. Si no lo consigues, no publiques: revierte tus cambios en `registro.json` e `index.html`, y envía el aviso de fallo (paso 6).
 
 ## 5. Publica
 
@@ -73,10 +73,10 @@ No borres ni modifiques los juegos anteriores. El histórico se conserva.
 
 ## 6. Avisa
 
-Crea un borrador en Gmail, sin enviar nada más, dirigido a la dirección indicada en la tarea programada:
+Envía un solo correo con el conector de Gmail (`send_message`), únicamente a la dirección indicada en la tarea programada:
 
-- **Publicado:** asunto `Minijuego listo: <título>`, con concepto, enlace directo al juego y enlace a la portada. Créalo solo cuando la comprobación del paso 5 haya pasado.
+- **Publicado:** asunto `Minijuego listo: <título>`, con concepto, enlace directo al juego y enlace a la portada. Envíalo solo cuando la comprobación del paso 5 haya pasado.
 - **Fallo:** asunto `Minijuego no publicado: <concepto>`, con lo que falló y lo que hiciste, sin enlaces a un juego que no funciona.
 - **Fin de curso:** asunto `Minijuegos: curso completado`. Indica que ya se cubrieron los 7 conceptos y que conviene ampliar la lista o desactivar la tarea programada.
 
-Si Gmail no está disponible, dilo en el resumen final de la ejecución. No afirmes haber avisado si no se creó el borrador.
+Si el envío falla, crea un borrador con el mismo contenido (`create_draft`) y dilo en el resumen final de la ejecución. Si tampoco se puede crear, indícalo también. No afirmes haber enviado un correo si el envío no se confirmó.
