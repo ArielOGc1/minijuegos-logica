@@ -3,10 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "construir": "node herramientas/construir.mjs",
     "portada": "node herramientas/generar-portada.mjs",
     "test": "node --test --test-concurrency=1 \"pruebas/*.test.mjs\""
   },
   "devDependencies": {
-    "playwright-core": "1.49.1"
+    "@micropython/micropython-webassembly-pyscript": "1.29.0-6",
+    "playwright-core": "1.49.1",
+    "sql.js": "1.15.2"
   }
 }

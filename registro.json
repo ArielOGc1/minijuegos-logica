@@ -12,11 +12,23 @@
       "fecha": "2026-11-03",
       "mecanicas": ["predecir qué imprime", "trazar valores finales", "ordenar bloques ejecutables", "completar una expresión probada con varios valores"]
     },
-    { "orden": 2, "id": "condicionales", "nombre": "Condicionales", "estado": "pendiente" },
-    { "orden": 3, "id": "bucles", "nombre": "Bucles", "estado": "pendiente" },
-    { "orden": 4, "id": "funciones", "nombre": "Funciones", "estado": "pendiente" },
-    { "orden": 5, "id": "listas", "nombre": "Arrays y listas", "estado": "pendiente" },
-    { "orden": 6, "id": "recursion", "nombre": "Recursión", "estado": "pendiente" },
-    { "orden": 7, "id": "algoritmos", "nombre": "Algoritmos básicos: ordenar y buscar", "estado": "pendiente" }
+    {
+      "orden": 2,
+      "id": "contar-agrupar",
+      "nombre": "Contar y agrupar",
+      "estado": "publicado",
+      "titulo": "El recuento",
+      "archivo": "juegos/02-contar-agrupar.html",
+      "fecha": "2026-11-03",
+      "mecanicas": ["escribir funciones de Python con casos ocultos", "escribir consultas SQL con datos ocultos", "predecir el resultado de una consulta"]
+    },
+    { "orden": 3, "id": "busqueda-diccionarios", "nombre": "Búsqueda con diccionarios y duplicados", "estado": "pendiente", "enfoque": "Python: pares que suman un objetivo, detectar duplicados. SQL: filas duplicadas con GROUP BY y HAVING, autouniones." },
+    { "orden": 4, "id": "limpieza-datos", "nombre": "Limpieza de datos", "estado": "pendiente", "enfoque": "Python: normalizar textos, descartar valores vacíos, quitar duplicados conservando el orden. SQL: COALESCE, DISTINCT, TRIM, LOWER, CASE." },
+    { "orden": 5, "id": "cruzar-tablas", "nombre": "Cruzar tablas", "estado": "pendiente", "enfoque": "Python: combinar listas de registros usando un diccionario como índice. SQL: INNER JOIN, LEFT JOIN, encontrar filas sin pareja." },
+    { "orden": 6, "id": "dos-punteros", "nombre": "Dos punteros y orden", "estado": "pendiente", "enfoque": "Python: palíndromos, combinar listas ordenadas, quitar duplicados en una lista ordenada. SQL: ORDER BY con LIMIT y OFFSET, el segundo valor más alto." },
+    { "orden": 7, "id": "ventana-deslizante", "nombre": "Ventana deslizante", "estado": "pendiente", "enfoque": "Python: mayor suma de k elementos seguidos, media móvil. SQL: funciones de ventana, ROW_NUMBER, SUM OVER, LAG." },
+    { "orden": 8, "id": "busqueda-binaria", "nombre": "Búsqueda binaria y rangos", "estado": "pendiente", "enfoque": "Python: búsqueda binaria, posición de inserción, primer valor que cumple. SQL: BETWEEN, rangos de fechas, agrupar por tramos con CASE." },
+    { "orden": 9, "id": "consultas-por-pasos", "nombre": "Resolver por pasos", "estado": "pendiente", "enfoque": "Python: pilas, paréntesis válidos, dividir un problema en funciones pequeñas. SQL: subconsultas y CTE con WITH." },
+    { "orden": 10, "id": "recursion", "nombre": "Recursión", "estado": "pendiente", "enfoque": "Python: casos base y recursivos, suma de dígitos, aplanar listas anidadas. SQL: WITH RECURSIVE para jerarquías." }
   ]
 }

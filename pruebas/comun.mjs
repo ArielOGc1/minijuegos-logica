@@ -33,7 +33,7 @@ export async function nuevaPagina(navegador, viewport = { width: 1280, height: 8
   pagina.on('requestfailed', (r) => errores.push(`Petición fallida: ${r.url()}`));
   pagina.on('request', (r) => {
     const url = new URL(r.url());
-    if (url.protocol === 'data:' || url.protocol === 'file:') return;
+    if (['data:', 'file:', 'blob:'].includes(url.protocol)) return;
     if (process.env.BASE_URL && url.origin === new URL(process.env.BASE_URL).origin) return;
     errores.push(`Recurso externo: ${r.url()}`);
   });

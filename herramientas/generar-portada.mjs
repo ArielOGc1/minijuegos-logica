@@ -33,7 +33,7 @@ const html = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Minijuegos de lógica</title>
-<meta name="description" content="Minijuegos en español para practicar lógica de programación desde cero, sin instalar nada.">
+<meta name="description" content="Minijuegos en español con retos de algoritmos y datos en Python y SQL, sin instalar nada.">
 <link rel="icon" href="data:,">
 <style>
 :root {
@@ -55,10 +55,10 @@ h1 { margin: 0; font: 700 clamp(2.6rem, 10vw, 5rem)/1 Rockwell, "Roboto Slab", "
 header p { max-width: 60ch; margin: .75rem 0 0; font-size: 1.15rem; }
 .estado { margin: 1.5rem 0 1rem; }
 .muro { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); margin: 0 0 3rem; padding: 0; list-style: none; }
-.casillero { background: var(--casillero); padding: .55rem; border-radius: 4px; }
+.casillero { display: flex; flex-direction: column; background: var(--casillero); padding: .55rem; border-radius: 4px; }
 .cerrado { background: #5D6F99; }
 .etiqueta { display: block; margin-bottom: .5rem; padding: .15rem .4rem; background: var(--blanco); border-radius: 2px; font-weight: 600; }
-.hueco { display: grid; place-items: center; min-height: 120px; padding: .75rem; background: var(--hueco); border-radius: 2px; box-shadow: inset 0 10px 12px -6px #000A; text-decoration: none; }
+.hueco { flex: 1; display: grid; place-items: center; min-height: 120px; padding: .75rem; background: var(--hueco); border-radius: 2px; box-shadow: inset 0 10px 12px -6px #000A; text-decoration: none; }
 .vacio { color: #C7D3EE; }
 .nota { padding: .55rem .9rem; background: var(--nota); color: var(--tinta); font: 700 1.3rem/1.2 Rockwell, "Roboto Slab", "Sitka Text", Georgia, serif; transform: rotate(-2deg); box-shadow: 0 3px 0 #0006; text-align: center; }
 a.hueco:hover .nota { transform: rotate(0); background: #FFE27A; }
@@ -69,7 +69,7 @@ a.hueco:hover .nota { transform: rotate(0); background: #FFE27A; }
 <header>
   <div class="ancho">
     <h1>Minijuegos de lógica</h1>
-    <p>Aprende a pensar como programador desde cero, un concepto cada vez. Cada juego se abre en el navegador: no hay nada que instalar.</p>
+    <p>Retos de algoritmos y datos con Python y SQL, un concepto cada vez. Tu código se ejecuta en el navegador: no hay nada que instalar.</p>
   </div>
 </header>
 <main class="ancho">
