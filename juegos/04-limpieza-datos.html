@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La escoba: limpieza de datos | Retos de Python y SQL</title>
+<meta name="description" content="Ejercicios de Python y SQL para normalizar textos, tratar valores vacíos y quitar duplicados, con pistas y solución.">
+<link rel="icon" href="data:,">
+<style>
+:root {
+  color-scheme: light;
+  --papel: #E8EEF6;
+  --tinta: #14264F;
+  --casillero: #1F46A8;
+  --hueco: #0F2A6B;
+  --nota: #FFD23F;
+  --blanco: #FFFFFF;
+  --exito: #0B6E4F;
+  --pista: #A01D45;
+  --titulo: Rockwell, "Roboto Slab", "Sitka Text", Georgia, serif;
+  --texto: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --codigo: "Cascadia Code", Consolas, ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 60px; }
+body { margin: 0; background: var(--papel); color: var(--tinta); font: 1.0625rem/1.55 var(--texto); }
+a { color: inherit; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--pista); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.ancho { width: min(100% - 32px, 860px); margin-inline: auto; }
+
+.banner { background: var(--casillero); color: var(--blanco); padding: 1rem 0 1.5rem; }
+.banner a { font-size: .95rem; }
+.banner h1 { margin: .4rem 0 0; font: 700 clamp(2.5rem, 9vw, 4.25rem)/1.02 var(--titulo); color: var(--nota); }
+.banner p { margin: .25rem 0 0; font-size: 1.05rem; }
+
+.marcador { position: sticky; top: 0; z-index: 2; background: var(--tinta); color: var(--blanco); padding: .5rem 0; }
+.marcador .ancho { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+#progreso { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+#progreso li { width: 18px; height: 18px; background: var(--hueco); border: 2px solid #5D7CC9; border-radius: 2px; }
+#progreso li.hecho { background: var(--nota); border-color: var(--nota); }
+.cuenta { white-space: nowrap; }
+#hechos { font: 700 1.5rem/1 var(--titulo); color: var(--nota); }
+
+.explicacion { max-width: 72ch; margin-block: 1.5rem; font-size: 1.125rem; }
+code { font-family: var(--codigo); font-size: .92em; background: var(--blanco); padding: .05em .3em; border-radius: 3px; overflow-wrap: anywhere; }
+
+h2 { margin: 0; font: 700 1.5rem/1.2 var(--titulo); }
+.como { margin-bottom: 2rem; padding: 1rem 1.1rem 1.2rem; background: var(--blanco); border: 2px solid var(--tinta); border-radius: 4px; }
+.como ol { margin: .6rem 0 1rem; padding-left: 1.4rem; }
+.como li + li { margin-top: .2rem; }
+.como code { background: var(--papel); }
+
+.ejercicio { padding-block: 1.5rem; border-top: 2px solid #AEBBD3; }
+.encabezado { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.lenguaje { padding: .05rem .5rem; background: var(--nota); border: 2px solid var(--tinta); border-radius: 3px; font-weight: 700; font-size: .9rem; }
+.enunciado { margin: .5rem 0 .9rem; max-width: 72ch; }
+
+.datos { margin: 0 0 1rem; }
+figcaption { margin-bottom: .3rem; font-weight: 600; font-size: .95rem; }
+.desplazable { overflow-x: auto; border: 2px solid var(--tinta); border-radius: 4px; background: var(--blanco); }
+table { width: 100%; border-collapse: collapse; font: .92rem/1.35 var(--codigo); }
+th, td { padding: .3rem .55rem; text-align: left; white-space: nowrap; border-bottom: 1px solid #D5DDEB; }
+th { background: var(--casillero); color: var(--blanco); font-weight: 600; }
+tbody tr:last-child td { border-bottom: 0; }
+td.nulo { color: var(--pista); font-style: italic; }
+
+.ejemplos { margin: 0 0 1rem; padding: .6rem .75rem; list-style: none; background: var(--blanco); border: 2px solid var(--tinta); border-radius: 4px; }
+.ejemplos li + li { margin-top: .35rem; }
+.ejemplos code { background: var(--papel); }
+
+.pistas { margin: 0 0 .75rem; padding: 0; list-style: none; }
+.pistas li { max-width: 72ch; padding: .5rem .8rem; background: #FFF6CC; border-left: 6px solid var(--nota); }
+.pistas li + li { margin-top: 4px; }
+.pistas code { background: var(--blanco); }
+
+.mandos { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.25rem; margin-bottom: .9rem; }
+.boton {
+  min-height: 46px; padding: .45rem 1.05rem; display: inline-flex; align-items: center;
+  background: var(--nota); color: var(--tinta); text-decoration: none; font-weight: 700; cursor: pointer;
+  border: 2px solid var(--tinta); border-radius: 4px; box-shadow: 0 3px 0 var(--tinta);
+  overflow-wrap: anywhere;
+}
+.boton:hover:not(:disabled) { background: #FFE27A; }
+.boton:active:not(:disabled) { transform: translateY(3px); box-shadow: none; }
+.boton.sobrio { background: var(--blanco); }
+.boton:disabled { opacity: .55; box-shadow: none; cursor: default; }
+.hecho { display: inline-flex; align-items: center; gap: .45rem; min-height: 44px; cursor: pointer; font-weight: 600; }
+.hecho input { width: 22px; height: 22px; accent-color: var(--exito); }
+
+.solucion summary {
+  width: fit-content; min-height: 44px; display: flex; align-items: center; cursor: pointer;
+  font-weight: 700; text-decoration: underline;
+}
+.solucion pre { margin: .3rem 0 .6rem; padding: .7rem .8rem; background: var(--hueco); color: #F2F6FF; border-radius: 4px; overflow-x: auto; }
+.solucion pre code { background: transparent; padding: 0; color: inherit; font-size: .95rem; line-height: 1.5; overflow-wrap: normal; }
+.solucion p { margin: 0; max-width: 72ch; }
+</style>
+</head>
+<body>
+<header class="banner">
+  <div class="ancho">
+    <a href="../index.html">Todas las entregas</a>
+    <h1>La escoba</h1>
+    <p>Entrega 4: limpieza de datos</p>
+  </div>
+</header>
+<div class="marcador">
+  <div class="ancho">
+    <ol id="progreso" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li></ol>
+    <div class="cuenta"><span id="hechos">0</span> de 6 resueltos</div>
+  </div>
+</div>
+<main class="ancho">
+  <p class="explicacion">Los datos reales llegan sucios: espacios de más, mayúsculas mezcladas, valores vacíos y repetidos que estropean cualquier conteo. Limpiar es elegir una forma única para cada valor y aplicarla siempre igual, ya sea con <code>strip</code> y <code>lower</code> en Python o con <code>TRIM</code>, <code>LOWER</code> y <code>COALESCE</code> en SQL. Casi siempre conviene limpiar antes de comparar, agrupar o quitar duplicados.</p>
+  <section class="como">
+    <h2>Cómo practicar</h2>
+    <ol>
+      <li>Descarga el archivo y ábrelo en tu editor.</li>
+      <li>Completa las funciones y las consultas.</li>
+      <li>Ejecuta <code>python entrega_04.py</code> para ver qué casos pasan. Solo necesitas Python: SQLite viene incluido.</li>
+      <li>Si te atascas, pide una pista. Al terminar, compara con la solución.</li>
+    </ol>
+    <a class="boton" id="descargar" href="data:text/x-python;base64,IyBFbnRyZWdhIDQ6IExpbXBpZXphIGRlIGRhdG9zCiMgQ29tcGxldGEgbGFzIGZ1bmNpb25lcyB5IGxhcyBjb25zdWx0YXMsIHkgZWplY3V0YSBlc3RlIGFyY2hpdm86CiMgICAgIHB5dGhvbiBlbnRyZWdhXzA0LnB5CiMgU29sbyBuZWNlc2l0YXMgUHl0aG9uOiBTUUxpdGUgdmllbmUgaW5jbHVpZG8uCgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyBFamVyY2ljaW8gMTogQ29ycmVvcyBsaW1waW9zIChQeXRob24pCiMgRXNjcmliZSBsaW1waWFyX2NvcnJlb3MgcGFyYSBxdWUgZGV2dWVsdmEgbG9zIGNvcnJlb3Mgc2luIGVzcGFjaW9zIGVuIGxvcwojIGV4dHJlbW9zIHkgZW4gbWluw7pzY3VsYXMsIGVuIGVsIG1pc21vIG9yZGVuLiBEZXNjYXJ0YSBsb3MgTm9uZSB5IGxvcyBxdWUKIyBxdWVkYW4gdmFjw61vcyBkZXNwdcOpcyBkZSBxdWl0YXIgbG9zIGVzcGFjaW9zLgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KZGVmIGxpbXBpYXJfY29ycmVvcyhjb3JyZW9zKToKICAgICMgRXNjcmliZSB0dSBzb2x1Y2nDs24gYXF1w60geSBib3JyYSBsYSBsw61uZWEgZGUgYWJham8KICAgIHJhaXNlIE5vdEltcGxlbWVudGVkRXJyb3IKCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQojIEVqZXJjaWNpbyAyOiBDYXRlZ29yw61hcyBlc2NyaXRhcyBkZSBtaWwgZm9ybWFzIChTUUwpCiMgT2J0w6luIGxhIGxpc3RhIGRlIGNhdGVnb3LDrWFzIGRpc3RpbnRhcywgc2luIGVzcGFjaW9zIGVuIGxvcyBleHRyZW1vcyB5IGVuCiMgbWluw7pzY3VsYXMuIExvcyBwcm9kdWN0b3Mgc2luIGNhdGVnb3LDrWEgbm8gY3VlbnRhbi4gT3JkZW5hCiMgYWxmYWLDqXRpY2FtZW50ZS4gT2pvOiBhbGd1bm9zIHZhbG9yZXMgdGllbmVuIGVzcGFjaW9zIGFsIHByaW5jaXBpbyBvIGFsCiMgZmluYWwgcXVlIGxhIHRhYmxhIGRlIGFiYWpvIG5vIGRlamEgdmVyLgojIFRhYmxhIHByb2R1Y3RvczogaWQsIGNhdGVnb3JpYQojIENvbHVtbmFzIGRlbCByZXN1bHRhZG86IGNhdGVnb3JpYQojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KQ09OU1VMVEFfMiA9ICIiIgotLSBFc2NyaWJlIHR1IGNvbnN1bHRhIGFxdcOtCiIiIgoKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgRWplcmNpY2lvIDM6IFNpbiByZXBldGlyLCBlbiBvcmRlbiAoUHl0aG9uKQojIEVzY3JpYmUgdW5pY29zX2VuX29yZGVuIHBhcmEgcXVlIGRldnVlbHZhIGxvcyB2YWxvcmVzIHNpbiBkdXBsaWNhZG9zLAojIGNvbnNlcnZhbmRvIGVsIG9yZGVuIGRlIHN1IHByaW1lcmEgYXBhcmljacOzbi4KIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCmRlZiB1bmljb3NfZW5fb3JkZW4odmFsb3Jlcyk6CiAgICAjIEVzY3JpYmUgdHUgc29sdWNpw7NuIGFxdcOtIHkgYm9ycmEgbGEgbMOtbmVhIGRlIGFiYWpvCiAgICByYWlzZSBOb3RJbXBsZW1lbnRlZEVycm9yCgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyBFamVyY2ljaW8gNDogQ2l1ZGFkZXMgZW4gYmxhbmNvIChTUUwpCiMgTXVlc3RyYSBlbCBub21icmUgeSBsYSBjaXVkYWQgZGUgdG9kb3MgbG9zIGNsaWVudGVzLCBvcmRlbmFkb3MgcG9yIGlkLiBMYQojIGNpdWRhZCBkZWJlIHNhbGlyIHNpbiBlc3BhY2lvcyBlbiBsb3MgZXh0cmVtb3MuIFNpIGZhbHRhIChOVUxMLCB0ZXh0bwojIHZhY8OtbyBvIHNvbG8gZXNwYWNpb3MpLCBtdWVzdHJhIFNpbiBjaXVkYWQuIEFsZ3Vub3MgdmFsb3JlcyB0aWVuZW4KIyBlc3BhY2lvcyBxdWUgbGEgdGFibGEgZGUgYWJham8gbm8gZGVqYSB2ZXIuCiMgVGFibGEgY2xpZW50ZXM6IGlkLCBub21icmUsIGNpdWRhZAojIENvbHVtbmFzIGRlbCByZXN1bHRhZG86IG5vbWJyZSwgY2l1ZGFkCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpDT05TVUxUQV80ID0gIiIiCi0tIEVzY3JpYmUgdHUgY29uc3VsdGEgYXF1w60KIiIiCgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyBFamVyY2ljaW8gNTogVGVsw6lmb25vcyBjb24gZm9ybWF0byAoUHl0aG9uKQojIEVzY3JpYmUgbm9ybWFsaXphcl90ZWxlZm9ubyBwYXJhIHF1ZSBkZXZ1ZWx2YSB1biBtw7N2aWwgZGUgRWN1YWRvciBlbgojIGZvcm1hdG8gMDlYWFhYWFhYWC4gUXVpdGEgY3VhbHF1aWVyIGNhcsOhY3RlciBxdWUgbm8gc2VhIHVuIGTDrWdpdG8uIFNpCiMgcXVlZGFuIDEyIGTDrWdpdG9zIHF1ZSBlbXBpZXphbiBwb3IgNTkzLCBjYW1iaWEgZXNlIHByZWZpam8gcG9yIHVuIDAuIEVsCiMgcmVzdWx0YWRvIHNvbG8gZXMgdsOhbGlkbyBzaSB0aWVuZSAxMCBkw61naXRvcyB5IGVtcGllemEgcG9yIDA5OyBzaSBubywKIyBkZXZ1ZWx2ZSBOb25lLgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KZGVmIG5vcm1hbGl6YXJfdGVsZWZvbm8odGV4dG8pOgogICAgIyBFc2NyaWJlIHR1IHNvbHVjacOzbiBhcXXDrSB5IGJvcnJhIGxhIGzDrW5lYSBkZSBhYmFqbwogICAgcmFpc2UgTm90SW1wbGVtZW50ZWRFcnJvcgoKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgRWplcmNpY2lvIDY6IEVzdGFkb3MgZGUgcGFnbyByZXZ1ZWx0b3MgKFNRTCkKIyBDYWRhIHBhZ28gdGllbmUgdW4gZXN0YWRvIGVzY3JpdG8gYSBtYW5vLiBDbGFzaWbDrWNhbG8gYXPDrSwgZGVzcHXDqXMgZGUKIyBxdWl0YXIgZXNwYWNpb3MgeSBwYXNhciBhIG1pbsO6c2N1bGFzOiBwYWdhZG8gc2kgZXMgcGFnYWRvIG8gcGFnYWRhOwojIHBlbmRpZW50ZSBzaSBlbXBpZXphIHBvciBwZW5kOyByZXZpc2FyIGVuIGN1YWxxdWllciBvdHJvIGNhc28sIGluY2x1aWRvcwojIGxvcyBOVUxMLiBEZXZ1ZWx2ZSBjYWRhIGVzdGFkbyBsaW1waW8gY29uIHN1IG7Dum1lcm8gZGUgcGFnb3MsIG9yZGVuYWRvIHBvcgojIGVzdGFkby4gQWxndW5vcyBlc3RhZG9zIHRpZW5lbiBlc3BhY2lvcyBxdWUgbGEgdGFibGEgZGUgYWJham8gbm8gZGVqYSB2ZXIuCiMgVGFibGEgcGFnb3M6IGlkLCBlc3RhZG8KIyBDb2x1bW5hcyBkZWwgcmVzdWx0YWRvOiBlc3RhZG9fbGltcGlvLCB0b3RhbAojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KQ09OU1VMVEFfNiA9ICIiIgotLSBFc2NyaWJlIHR1IGNvbnN1bHRhIGFxdcOtCiIiIgoKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgTm8gaGFjZSBmYWx0YSBjYW1iaWFyIG5hZGEgZGViYWpvIGRlIGVzdGEgbMOtbmVhCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpUSVRVTE8gPSAiRW50cmVnYSA0OiBMaW1waWV6YSBkZSBkYXRvcyIKRUpFUkNJQ0lPUyA9IFsKICAgIHsibnVtZXJvIjogMSwgInRpdHVsbyI6ICJDb3JyZW9zIGxpbXBpb3MiLCAidGlwbyI6ICJweXRob24iLCAiZnVuY2lvbiI6IGxpbXBpYXJfY29ycmVvcywgImNhc29zIjogWwogICAgICAgIChbWyIgQW5hQENvcnJlby5lYyAiLCAibHVpc0Bjb3JyZW8uZWMiXV0sIFsiYW5hQGNvcnJlby5lYyIsICJsdWlzQGNvcnJlby5lYyJdKSwKICAgICAgICAoW1siICIsIE5vbmUsICJYQFkuRUMiXV0sIFsieEB5LmVjIl0pLAogICAgICAgIChbW11dLCBbXSksCiAgICAgICAgKFtbIlx0U29sQGMuZWNcbiJdXSwgWyJzb2xAYy5lYyJdKSwKICAgICAgICAoW1siIiwgIiAgICIsIE5vbmVdXSwgW10pCiAgICBdfSwKICAgIHsibnVtZXJvIjogMiwgInRpdHVsbyI6ICJDYXRlZ29yw61hcyBlc2NyaXRhcyBkZSBtaWwgZm9ybWFzIiwgInRpcG8iOiAic3FsIiwgImNvbnN1bHRhIjogQ09OU1VMVEFfMiwgImNvbl9vcmRlbiI6IFRydWUsICJkYXRvcyI6IFsKICAgICAgICAoIkNSRUFURSBUQUJMRSBwcm9kdWN0b3MgKGlkLCBjYXRlZ29yaWEpOyBJTlNFUlQgSU5UTyBwcm9kdWN0b3MgVkFMVUVTICgxLCAnIEJlYmlkYXMnKSwgKDIsICdiZWJpZGFzJyksICgzLCAnQkVCSURBUyAnKSwgKDQsICdTbmFja3MnKSwgKDUsICdzbmFja3MnKSwgKDYsIE5VTEwpLCAoNywgJ0xpbXBpZXphJyk7IiwgW1siYmViaWRhcyJdLCBbImxpbXBpZXphIl0sIFsic25hY2tzIl1dKSwKICAgICAgICAoIkNSRUFURSBUQUJMRSBwcm9kdWN0b3MgKGlkLCBjYXRlZ29yaWEpOyBJTlNFUlQgSU5UTyBwcm9kdWN0b3MgVkFMVUVTICgxLCAnICBGcnV0YXMnKSwgKDIsICdGUlVUQVMnKSwgKDMsICdmcnV0YXMgICcpLCAoNCwgTlVMTCksICg1LCAnUGFuJyksICg2LCAnQWd1YScpOyIsIFtbImFndWEiXSwgWyJmcnV0YXMiXSwgWyJwYW4iXV0pCiAgICBdfSwKICAgIHsibnVtZXJvIjogMywgInRpdHVsbyI6ICJTaW4gcmVwZXRpciwgZW4gb3JkZW4iLCAidGlwbyI6ICJweXRob24iLCAiZnVuY2lvbiI6IHVuaWNvc19lbl9vcmRlbiwgImNhc29zIjogWwogICAgICAgIChbWzMsIDEsIDMsIDIsIDFdXSwgWzMsIDEsIDJdKSwKICAgICAgICAoW1siYW5hIiwgImx1aXMiLCAiYW5hIiwgInNvbCJdXSwgWyJhbmEiLCAibHVpcyIsICJzb2wiXSksCiAgICAgICAgKFtbXV0sIFtdKSwKICAgICAgICAoW1sxLCAxLCAxXV0sIFsxXSksCiAgICAgICAgKFtbImIiLCAiYSIsICJiIiwgImMiXV0sIFsiYiIsICJhIiwgImMiXSkKICAgIF19LAogICAgeyJudW1lcm8iOiA0LCAidGl0dWxvIjogIkNpdWRhZGVzIGVuIGJsYW5jbyIsICJ0aXBvIjogInNxbCIsICJjb25zdWx0YSI6IENPTlNVTFRBXzQsICJjb25fb3JkZW4iOiBUcnVlLCAiZGF0b3MiOiBbCiAgICAgICAgKCJDUkVBVEUgVEFCTEUgY2xpZW50ZXMgKGlkLCBub21icmUsIGNpdWRhZCk7IElOU0VSVCBJTlRPIGNsaWVudGVzIFZBTFVFUyAoMSwgJ0FuYScsICdRdWl0bycpLCAoMiwgJ0x1aXMnLCBOVUxMKSwgKDMsICdNYXJ0YScsICcgIEN1ZW5jYSAnKSwgKDQsICdTb2wnLCAnJyksICg1LCAnSXbDoW4nLCAnR3VheWFxdWlsJyk7IiwgW1siQW5hIiwgIlF1aXRvIl0sIFsiTHVpcyIsICJTaW4gY2l1ZGFkIl0sIFsiTWFydGEiLCAiQ3VlbmNhIl0sIFsiU29sIiwgIlNpbiBjaXVkYWQiXSwgWyJJdsOhbiIsICJHdWF5YXF1aWwiXV0pLAogICAgICAgICgiQ1JFQVRFIFRBQkxFIGNsaWVudGVzIChpZCwgbm9tYnJlLCBjaXVkYWQpOyBJTlNFUlQgSU5UTyBjbGllbnRlcyBWQUxVRVMgKDEsICdSaXRhJywgJyAgICcpLCAoMiwgJ1RpdG8nLCBOVUxMKSwgKDMsICdVbWEnLCAnTG9qYScpOyIsIFtbIlJpdGEiLCAiU2luIGNpdWRhZCJdLCBbIlRpdG8iLCAiU2luIGNpdWRhZCJdLCBbIlVtYSIsICJMb2phIl1dKQogICAgXX0sCiAgICB7Im51bWVybyI6IDUsICJ0aXR1bG8iOiAiVGVsw6lmb25vcyBjb24gZm9ybWF0byIsICJ0aXBvIjogInB5dGhvbiIsICJmdW5jaW9uIjogbm9ybWFsaXphcl90ZWxlZm9ubywgImNhc29zIjogWwogICAgICAgIChbIjA5OSAxMjMgNDU2NyJdLCAiMDk5MTIzNDU2NyIpLAogICAgICAgIChbIis1OTMgOTktMTIzLTQ1NjciXSwgIjA5OTEyMzQ1NjciKSwKICAgICAgICAoWyIoMDIpIDIzNC01Njc4Il0sIE5vbmUpLAogICAgICAgIChbIiJdLCBOb25lKSwKICAgICAgICAoWyI1OTM5OTEyMzQ1NjciXSwgIjA5OTEyMzQ1NjciKSwKICAgICAgICAoWyIwOTkgNTkzIDEyMzQiXSwgIjA5OTU5MzEyMzQiKSwKICAgICAgICAoWyIwOTktMTIzLTQ1NiJdLCBOb25lKSwKICAgICAgICAoWyJ0ZWw6IDA5ODc2NTQzMjEiXSwgIjA5ODc2NTQzMjEiKQogICAgXX0sCiAgICB7Im51bWVybyI6IDYsICJ0aXR1bG8iOiAiRXN0YWRvcyBkZSBwYWdvIHJldnVlbHRvcyIsICJ0aXBvIjogInNxbCIsICJjb25zdWx0YSI6IENPTlNVTFRBXzYsICJjb25fb3JkZW4iOiBUcnVlLCAiZGF0b3MiOiBbCiAgICAgICAgKCJDUkVBVEUgVEFCTEUgcGFnb3MgKGlkLCBlc3RhZG8pOyBJTlNFUlQgSU5UTyBwYWdvcyBWQUxVRVMgKDEsICdQQUdBRE8nKSwgKDIsICcgcGFnYWRvJyksICgzLCAnUGVuZGllbnRlJyksICg0LCAncGVuZC4nKSwgKDUsIE5VTEwpLCAoNiwgJ2NhbmNlbGFkbycpLCAoNywgJ1BhZ2FkYSAnKSwgKDgsICdwYWdhZG8nKTsiLCBbWyJwYWdhZG8iLCA0XSwgWyJwZW5kaWVudGUiLCAyXSwgWyJyZXZpc2FyIiwgMl1dKSwKICAgICAgICAoIkNSRUFURSBUQUJMRSBwYWdvcyAoaWQsIGVzdGFkbyk7IElOU0VSVCBJTlRPIHBhZ29zIFZBTFVFUyAoMSwgJyAgUEVORCcpLCAoMiwgTlVMTCksICgzLCBOVUxMKSwgKDQsICcnKSwgKDUsICdwYWdhZG8nKTsiLCBbWyJwYWdhZG8iLCAxXSwgWyJwZW5kaWVudGUiLCAxXSwgWyJyZXZpc2FyIiwgM11dKQogICAgXX0KXQoKaW1wb3J0IGNvcHkKaW1wb3J0IHNxbGl0ZTMKaW1wb3J0IHN5cwoKCmRlZiBfaWd1YWxlcyhhLCBiKToKICAgIGlmIGlzaW5zdGFuY2UoYSwgZmxvYXQpIG9yIGlzaW5zdGFuY2UoYiwgZmxvYXQpOgogICAgICAgIHRyeToKICAgICAgICAgICAgcmV0dXJuIGFicyhhIC0gYikgPCAxZS02CiAgICAgICAgZXhjZXB0IFR5cGVFcnJvcjoKICAgICAgICAgICAgcmV0dXJuIEZhbHNlCiAgICBpZiBpc2luc3RhbmNlKGEsIChsaXN0LCB0dXBsZSkpIGFuZCBpc2luc3RhbmNlKGIsIChsaXN0LCB0dXBsZSkpOgogICAgICAgIHJldHVybiBsZW4oYSkgPT0gbGVuKGIpIGFuZCBhbGwoX2lndWFsZXMoeCwgeSkgZm9yIHgsIHkgaW4gemlwKGEsIGIpKQogICAgaWYgaXNpbnN0YW5jZShhLCBkaWN0KSBhbmQgaXNpbnN0YW5jZShiLCBkaWN0KToKICAgICAgICByZXR1cm4gYS5rZXlzKCkgPT0gYi5rZXlzKCkgYW5kIGFsbChfaWd1YWxlcyhhW2tdLCBiW2tdKSBmb3IgayBpbiBhKQogICAgcmV0dXJuIGEgPT0gYgoKCmRlZiBfcmV2aXNhcl9weXRob24oZWplcmNpY2lvKToKICAgIG5vbWJyZSA9IGVqZXJjaWNpb1siZnVuY2lvbiJdLl9fbmFtZV9fCiAgICBmb3IgYXJncywgZXNwZXJhZG8gaW4gZWplcmNpY2lvWyJjYXNvcyJdOgogICAgICAgIGxsYW1hZGEgPSBmIntub21icmV9KHsnLCAnLmpvaW4ocmVwcihhKSBmb3IgYSBpbiBhcmdzKX0pIgogICAgICAgIHRyeToKICAgICAgICAgICAgb2J0ZW5pZG8gPSBlamVyY2ljaW9bImZ1bmNpb24iXSgqY29weS5kZWVwY29weShhcmdzKSkKICAgICAgICBleGNlcHQgTm90SW1wbGVtZW50ZWRFcnJvcjoKICAgICAgICAgICAgcmV0dXJuICJTSU4gRU1QRVpBUiIsIFtdCiAgICAgICAgZXhjZXB0IEV4Y2VwdGlvbiBhcyBlcnJvcjoKICAgICAgICAgICAgcmV0dXJuICJGQUxMQSIsIFtmIkNhc286IHtsbGFtYWRhfSIsIGYiRXJyb3I6IHt0eXBlKGVycm9yKS5fX25hbWVfX306IHtlcnJvcn0iXQogICAgICAgIGlmIG5vdCBfaWd1YWxlcyhvYnRlbmlkbywgZXNwZXJhZG8pOgogICAgICAgICAgICByZXR1cm4gIkZBTExBIiwgW2YiQ2Fzbzoge2xsYW1hZGF9IiwgZiJFc3BlcmFkbzoge2VzcGVyYWRvIXJ9IiwgZiJPYnRlbmlkbzoge29idGVuaWRvIXJ9Il0KICAgIHJldHVybiAiUEFTQSIsIFtdCgoKZGVmIF9yZXZpc2FyX3NxbChlamVyY2ljaW8pOgogICAgbGluZWFzID0gZWplcmNpY2lvWyJjb25zdWx0YSJdLnNwbGl0bGluZXMoKQogICAgaWYgbm90IGFueShsLnN0cmlwKCkgYW5kIG5vdCBsLnN0cmlwKCkuc3RhcnRzd2l0aCgiLS0iKSBmb3IgbCBpbiBsaW5lYXMpOgogICAgICAgIHJldHVybiAiU0lOIEVNUEVaQVIiLCBbXQogICAgZm9yIHByZXBhcmFjaW9uLCBlc3BlcmFkbyBpbiBlamVyY2ljaW9bImRhdG9zIl06CiAgICAgICAgY29uZXhpb24gPSBzcWxpdGUzLmNvbm5lY3QoIjptZW1vcnk6IikKICAgICAgICBjb25leGlvbi5leGVjdXRlc2NyaXB0KHByZXBhcmFjaW9uKQogICAgICAgIHRyeToKICAgICAgICAgICAgb2J0ZW5pZG8gPSBjb25leGlvbi5leGVjdXRlKGVqZXJjaWNpb1siY29uc3VsdGEiXSkuZmV0Y2hhbGwoKQogICAgICAgIGV4Y2VwdCBzcWxpdGUzLkVycm9yIGFzIGVycm9yOgogICAgICAgICAgICByZXR1cm4gIkZBTExBIiwgW2YiRXJyb3IgZW4gbGEgY29uc3VsdGE6IHtlcnJvcn0iXQogICAgICAgIGZpbmFsbHk6CiAgICAgICAgICAgIGNvbmV4aW9uLmNvbW1pdCgpCiAgICAgICAgY29uZXhpb24uY2xvc2UoKQogICAgICAgIGNvbXBhcmFyID0gKG9idGVuaWRvLCBlc3BlcmFkbykKICAgICAgICBpZiBub3QgZWplcmNpY2lvWyJjb25fb3JkZW4iXToKICAgICAgICAgICAgY29tcGFyYXIgPSAoc29ydGVkKG9idGVuaWRvLCBrZXk9cmVwciksIHNvcnRlZCgodHVwbGUoZikgZm9yIGYgaW4gZXNwZXJhZG8pLCBrZXk9cmVwcikpCiAgICAgICAgaWYgbm90IF9pZ3VhbGVzKCpjb21wYXJhcik6CiAgICAgICAgICAgIHJldHVybiAiRkFMTEEiLCBbCiAgICAgICAgICAgICAgICBmIkVzcGVyYWRvOiB7W3R1cGxlKGYpIGZvciBmIGluIGVzcGVyYWRvXX0iLAogICAgICAgICAgICAgICAgZiJPYnRlbmlkbzoge29idGVuaWRvfSIKICAgICAgICAgICAgXQogICAgcmV0dXJuICJQQVNBIiwgW10KCgpkZWYgbWFpbigpOgogICAgc3lzLnN0ZG91dC5yZWNvbmZpZ3VyZShlbmNvZGluZz0idXRmLTgiKQogICAgcHJpbnQoVElUVUxPKQogICAgcHJpbnQoKQogICAgY29ycmVjdG9zID0gMAogICAgZm9yIGVqZXJjaWNpbyBpbiBFSkVSQ0lDSU9TOgogICAgICAgIHJldmlzYXIgPSBfcmV2aXNhcl9weXRob24gaWYgZWplcmNpY2lvWyJ0aXBvIl0gPT0gInB5dGhvbiIgZWxzZSBfcmV2aXNhcl9zcWwKICAgICAgICBlc3RhZG8sIGRldGFsbGVzID0gcmV2aXNhcihlamVyY2ljaW8pCiAgICAgICAgcHJpbnQoZiJ7ZWplcmNpY2lvWydudW1lcm8nXX0uIHtlamVyY2ljaW9bJ3RpdHVsbyddfToge2VzdGFkb30iKQogICAgICAgIGZvciBkZXRhbGxlIGluIGRldGFsbGVzOgogICAgICAgICAgICBwcmludChmIiAgIHtkZXRhbGxlfSIpCiAgICAgICAgaWYgZXN0YWRvID09ICJQQVNBIjoKICAgICAgICAgICAgY29ycmVjdG9zICs9IDEKICAgIHByaW50KCkKICAgIHByaW50KGYiUmVzdWx0YWRvOiB7Y29ycmVjdG9zfSBkZSB7bGVuKEVKRVJDSUNJT1MpfSBlamVyY2ljaW9zIGNvcnJlY3Rvcy4iKQogICAgcmV0dXJuIDAgaWYgY29ycmVjdG9zID09IGxlbihFSkVSQ0lDSU9TKSBlbHNlIDEKCgppZiBfX25hbWVfXyA9PSAiX19tYWluX18iOgogICAgc3lzLmV4aXQobWFpbigpKQo=" download="entrega_04.py">Descargar entrega_04.py</a>
+  </section>
+  <article class="ejercicio" id="ejercicio-1" data-ejercicio="1">
+      <div class="encabezado"><span class="lenguaje">Python</span><h2>1. Correos limpios</h2></div>
+      <p class="enunciado">Escribe <code>limpiar_correos</code> para que devuelva los correos sin espacios en los extremos y en minúsculas, en el mismo orden. Descarta los <code>None</code> y los que quedan vacíos después de quitar los espacios.</p>
+      <ul class="ejemplos"><li><code>limpiar_correos([&quot; Ana@Correo.ec &quot;, &quot;luis@correo.ec&quot;])</code> devuelve <code>[&quot;ana@correo.ec&quot;, &quot;luis@correo.ec&quot;]</code></li><li><code>limpiar_correos([&quot; &quot;, None, &quot;X@Y.EC&quot;])</code> devuelve <code>[&quot;x@y.ec&quot;]</code></li></ul>
+      <ol class="pistas" aria-live="polite"><li hidden>Trata primero el caso <code>None</code>: no tiene métodos de texto, así que hay que saltarlo antes de nada.</li><li hidden>Los métodos <code>strip</code> y <code>lower</code> devuelven un texto nuevo; no cambian el original.</li><li hidden>Decide si un correo está vacío después de quitarle los espacios, no antes.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>def limpiar_correos(correos):
+    limpios = []
+    for c in correos:
+        if c is None:
+            continue
+        c = c.strip().lower()
+        if c:
+            limpios.append(c)
+    return limpios</code></pre>
+        <p>La trampa es el orden: <code>&quot; &quot;</code> no está vacío, así que pasa el filtro y se convierte en <code>&quot;&quot;</code> al limpiarlo. Por eso primero se limpia y después se comprueba. <code>strip</code> sin argumentos quita también tabuladores y saltos de línea.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-2" data-ejercicio="2">
+      <div class="encabezado"><span class="lenguaje">SQL</span><h2>2. Categorías escritas de mil formas</h2></div>
+      <p class="enunciado">Obtén la lista de categorías distintas, sin espacios en los extremos y en minúsculas. Los productos sin categoría no cuentan. Ordena alfabéticamente. Ojo: algunos valores tienen espacios al principio o al final que la tabla de abajo no deja ver.</p>
+      <figure class="datos">
+        <figcaption>Tabla productos</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>id</th><th>categoria</th></tr></thead>
+          <tbody><tr><td>1</td><td> Bebidas</td></tr><tr><td>2</td><td>bebidas</td></tr><tr><td>3</td><td>BEBIDAS </td></tr><tr><td>4</td><td>Snacks</td></tr><tr><td>5</td><td>snacks</td></tr><tr><td>6</td><td class="nulo">NULL</td></tr><tr><td>7</td><td>Limpieza</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Resultado esperado</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>categoria</th></tr></thead>
+          <tbody><tr><td>bebidas</td></tr><tr><td>limpieza</td></tr><tr><td>snacks</td></tr></tbody>
+        </table></div>
+      </figure>
+      <ol class="pistas" aria-live="polite"><li hidden>Antes de comparar categorías, todas tienen que estar escritas igual: sin espacios en los extremos y en minúsculas.</li><li hidden>Puedes aplicar funciones dentro del <code>SELECT</code> y pedir valores distintos sobre el resultado ya transformado.</li><li hidden>Una fila sin categoría no es una categoría: descártala.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>SELECT DISTINCT LOWER(TRIM(categoria)) AS categoria
+FROM productos
+WHERE categoria IS NOT NULL
+ORDER BY categoria;</code></pre>
+        <p><code>DISTINCT</code> compara los valores tal como salen del <code>SELECT</code>, así que la limpieza tiene que ocurrir dentro de él. Sin <code>TRIM</code>, <code>&quot; bebidas&quot;</code> y <code>&quot;bebidas&quot;</code> cuentan como distintas. Ojo: en SQLite <code>LOWER</code> solo cambia letras sin tilde, así que <code>Á</code> se queda igual; otros motores sí las convierten.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-3" data-ejercicio="3">
+      <div class="encabezado"><span class="lenguaje">Python</span><h2>3. Sin repetir, en orden</h2></div>
+      <p class="enunciado">Escribe <code>unicos_en_orden</code> para que devuelva los valores sin duplicados, conservando el orden de su primera aparición.</p>
+      <ul class="ejemplos"><li><code>unicos_en_orden([3, 1, 3, 2, 1])</code> devuelve <code>[3, 1, 2]</code></li><li><code>unicos_en_orden([&quot;ana&quot;, &quot;luis&quot;, &quot;ana&quot;, &quot;sol&quot;])</code> devuelve <code>[&quot;ana&quot;, &quot;luis&quot;, &quot;sol&quot;]</code></li></ul>
+      <ol class="pistas" aria-live="polite"><li hidden>Un conjunto recuerda lo que ya viste, pero no guarda el orden de llegada.</li><li hidden>Necesitas dos estructuras: una para preguntar rápido si ya apareció y otra para conservar el orden.</li><li hidden>Añade un valor al resultado solo la primera vez que lo encuentras.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>def unicos_en_orden(valores):
+    vistos = set()
+    resultado = []
+    for v in valores:
+        if v not in vistos:
+            vistos.add(v)
+            resultado.append(v)
+    return resultado</code></pre>
+        <p><code>list(set(valores))</code> quita los repetidos pero pierde el orden, que en una lista de registros suele importar. Desde Python 3.7 también vale <code>list(dict.fromkeys(valores))</code>, porque los diccionarios conservan el orden de inserción.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-4" data-ejercicio="4">
+      <div class="encabezado"><span class="lenguaje">SQL</span><h2>4. Ciudades en blanco</h2></div>
+      <p class="enunciado">Muestra el nombre y la ciudad de todos los clientes, ordenados por id. La ciudad debe salir sin espacios en los extremos. Si falta (NULL, texto vacío o solo espacios), muestra <code>Sin ciudad</code>. Algunos valores tienen espacios que la tabla de abajo no deja ver.</p>
+      <figure class="datos">
+        <figcaption>Tabla clientes</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>id</th><th>nombre</th><th>ciudad</th></tr></thead>
+          <tbody><tr><td>1</td><td>Ana</td><td>Quito</td></tr><tr><td>2</td><td>Luis</td><td class="nulo">NULL</td></tr><tr><td>3</td><td>Marta</td><td>  Cuenca </td></tr><tr><td>4</td><td>Sol</td><td></td></tr><tr><td>5</td><td>Iván</td><td>Guayaquil</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Resultado esperado</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>nombre</th><th>ciudad</th></tr></thead>
+          <tbody><tr><td>Ana</td><td>Quito</td></tr><tr><td>Luis</td><td>Sin ciudad</td></tr><tr><td>Marta</td><td>Cuenca</td></tr><tr><td>Sol</td><td>Sin ciudad</td></tr><tr><td>Iván</td><td>Guayaquil</td></tr></tbody>
+        </table></div>
+      </figure>
+      <ol class="pistas" aria-live="polite"><li hidden><code>COALESCE</code> sustituye un NULL, pero un texto vacío no es NULL.</li><li hidden>Existe una función que convierte un valor concreto en NULL: úsala para que los textos vacíos se traten igual que los NULL.</li><li hidden>Quita los espacios antes de comprobar si el texto está vacío: una ciudad con solo espacios también falta.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>SELECT nombre, COALESCE(NULLIF(TRIM(ciudad), ''), 'Sin ciudad') AS ciudad
+FROM clientes
+ORDER BY id;</code></pre>
+        <p><code>NULLIF(x, '')</code> devuelve NULL cuando <code>x</code> es un texto vacío, y entonces <code>COALESCE</code> pone el valor por defecto. Se lee de dentro hacia fuera: limpiar, convertir lo vacío en NULL y rellenar. También funciona con un <code>CASE</code>, pero es fácil olvidar el caso de los espacios.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-5" data-ejercicio="5">
+      <div class="encabezado"><span class="lenguaje">Python</span><h2>5. Teléfonos con formato</h2></div>
+      <p class="enunciado">Escribe <code>normalizar_telefono</code> para que devuelva un móvil de Ecuador en formato <code>09XXXXXXXX</code>. Quita cualquier carácter que no sea un dígito. Si quedan 12 dígitos que empiezan por <code>593</code>, cambia ese prefijo por un <code>0</code>. El resultado solo es válido si tiene 10 dígitos y empieza por <code>09</code>; si no, devuelve <code>None</code>.</p>
+      <ul class="ejemplos"><li><code>normalizar_telefono(&quot;099 123 4567&quot;)</code> devuelve <code>&quot;0991234567&quot;</code></li><li><code>normalizar_telefono(&quot;+593 99-123-4567&quot;)</code> devuelve <code>&quot;0991234567&quot;</code></li><li><code>normalizar_telefono(&quot;(02) 234-5678&quot;)</code> devuelve <code>None</code></li></ul>
+      <ol class="pistas" aria-live="polite"><li hidden>Empieza por quedarte solo con los dígitos, recorriendo el texto carácter a carácter.</li><li hidden>El prefijo 593 solo debe cambiarse cuando está al principio y el número tiene la longitud de un número internacional completo.</li><li hidden>Haz la validación final, de longitud y de inicio, después de convertir el prefijo internacional.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>def normalizar_telefono(texto):
+    digitos = ''.join(c for c in texto if c.isdigit())
+    if len(digitos) == 12 and digitos.startswith('593'):
+        digitos = '0' + digitos[3:]
+    if len(digitos) == 10 and digitos.startswith('09'):
+        return digitos
+    return None</code></pre>
+        <p>Reemplazar <code>593</code> donde aparezca rompe números que lo llevan en medio, como <code>099 593 1234</code>. Comprobar la posición y la longitud antes de tocar nada evita esos falsos positivos, y validar al final asegura que cada número devuelto tiene el mismo formato.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-6" data-ejercicio="6">
+      <div class="encabezado"><span class="lenguaje">SQL</span><h2>6. Estados de pago revueltos</h2></div>
+      <p class="enunciado">Cada pago tiene un estado escrito a mano. Clasifícalo así, después de quitar espacios y pasar a minúsculas: <code>pagado</code> si es <code>pagado</code> o <code>pagada</code>; <code>pendiente</code> si empieza por <code>pend</code>; <code>revisar</code> en cualquier otro caso, incluidos los NULL. Devuelve cada estado limpio con su número de pagos, ordenado por estado. Algunos estados tienen espacios que la tabla de abajo no deja ver.</p>
+      <figure class="datos">
+        <figcaption>Tabla pagos</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>id</th><th>estado</th></tr></thead>
+          <tbody><tr><td>1</td><td>PAGADO</td></tr><tr><td>2</td><td> pagado</td></tr><tr><td>3</td><td>Pendiente</td></tr><tr><td>4</td><td>pend.</td></tr><tr><td>5</td><td class="nulo">NULL</td></tr><tr><td>6</td><td>cancelado</td></tr><tr><td>7</td><td>Pagada </td></tr><tr><td>8</td><td>pagado</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Resultado esperado</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>estado_limpio</th><th>total</th></tr></thead>
+          <tbody><tr><td>pagado</td><td>4</td></tr><tr><td>pendiente</td><td>2</td></tr><tr><td>revisar</td><td>2</td></tr></tbody>
+        </table></div>
+      </figure>
+      <ol class="pistas" aria-live="polite"><li hidden>Primero limpia el texto, quitando espacios y mayúsculas, y después decide en qué grupo cae.</li><li hidden><code>CASE</code> evalúa las condiciones en orden y se queda con la primera que se cumple; lo que no encaja en ninguna va a <code>ELSE</code>.</li><li hidden>Agrupa por el estado ya clasificado y fíjate en qué cuentas: aquí los NULL también son pagos.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>SELECT CASE
+         WHEN LOWER(TRIM(estado)) IN ('pagado', 'pagada') THEN 'pagado'
+         WHEN LOWER(TRIM(estado)) LIKE 'pend%' THEN 'pendiente'
+         ELSE 'revisar'
+       END AS estado_limpio,
+       COUNT(*) AS total
+FROM pagos
+GROUP BY estado_limpio
+ORDER BY estado_limpio;</code></pre>
+        <p><code>COUNT(estado)</code> ignora los NULL y deja el grupo <code>revisar</code> corto; <code>COUNT(*)</code> cuenta filas. En SQLite, <code>LIKE</code> no distingue mayúsculas en letras sin tilde, mientras que en PostgreSQL sí, por eso conviene pasar a minúsculas igualmente. Agrupar por un alias del <code>SELECT</code> funciona en SQLite, MySQL y PostgreSQL, pero no en SQL Server.</p>
+      </details>
+    </article>
+</main>
+<script>
+const CLAVE_ENTREGA = "retos-python-sql:limpieza-datos:hechos";
+const ejercicios = [...document.querySelectorAll('.ejercicio')];
+
+function leerHechos() {
+  try {
+    return JSON.parse(localStorage.getItem(CLAVE_ENTREGA)) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function guardarHechos(hechos) {
+  try {
+    localStorage.setItem(CLAVE_ENTREGA, JSON.stringify(hechos));
+  } catch (e) { /* sin almacenamiento: el contador dura hasta recargar */ }
+}
+
+function pintarAvance() {
+  const marcados = ejercicios.filter((e) => e.querySelector('.marcar').checked);
+  document.getElementById('hechos').textContent = String(marcados.length);
+  [...document.getElementById('progreso').children].forEach((caja, i) => {
+    caja.classList.toggle('hecho', i < marcados.length);
+  });
+  guardarHechos(marcados.map((e) => e.dataset.ejercicio));
+}
+
+const iniciales = leerHechos();
+ejercicios.forEach((ejercicio) => {
+  const marcar = ejercicio.querySelector('.marcar');
+  marcar.checked = iniciales.includes(ejercicio.dataset.ejercicio);
+  marcar.addEventListener('change', pintarAvance);
+
+  const boton = ejercicio.querySelector('.ver-pista');
+  const pistas = [...ejercicio.querySelectorAll('.pistas li')];
+  boton.addEventListener('click', () => {
+    const siguiente = pistas.findIndex((p) => p.hidden);
+    pistas[siguiente].hidden = false;
+    if (siguiente + 1 < pistas.length) {
+      boton.textContent = `Ver pista ${siguiente + 2} de ${pistas.length}`;
+    } else {
+      boton.textContent = 'No hay más pistas';
+      boton.disabled = true;
+    }
+  });
+});
+pintarAvance();
+</script>
+</body>
+</html>
