@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Las parejas: cruzar tablas | Retos de Python y SQL</title>
+<meta name="description" content="Ejercicios de Python y SQL para combinar registros de dos tablas, con INNER JOIN, LEFT JOIN y diccionarios como índice, con pistas y solución.">
+<link rel="icon" href="data:,">
+<style>
+:root {
+  color-scheme: light;
+  --papel: #E8EEF6;
+  --tinta: #14264F;
+  --casillero: #1F46A8;
+  --hueco: #0F2A6B;
+  --nota: #FFD23F;
+  --blanco: #FFFFFF;
+  --exito: #0B6E4F;
+  --pista: #A01D45;
+  --titulo: Rockwell, "Roboto Slab", "Sitka Text", Georgia, serif;
+  --texto: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --codigo: "Cascadia Code", Consolas, ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 60px; }
+body { margin: 0; background: var(--papel); color: var(--tinta); font: 1.0625rem/1.55 var(--texto); }
+a { color: inherit; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--pista); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.ancho { width: min(100% - 32px, 860px); margin-inline: auto; }
+
+.banner { background: var(--casillero); color: var(--blanco); padding: 1rem 0 1.5rem; }
+.banner a { font-size: .95rem; }
+.banner h1 { margin: .4rem 0 0; font: 700 clamp(2.5rem, 9vw, 4.25rem)/1.02 var(--titulo); color: var(--nota); }
+.banner p { margin: .25rem 0 0; font-size: 1.05rem; }
+
+.marcador { position: sticky; top: 0; z-index: 2; background: var(--tinta); color: var(--blanco); padding: .5rem 0; }
+.marcador .ancho { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+#progreso { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+#progreso li { width: 18px; height: 18px; background: var(--hueco); border: 2px solid #5D7CC9; border-radius: 2px; }
+#progreso li.hecho { background: var(--nota); border-color: var(--nota); }
+.cuenta { white-space: nowrap; }
+#hechos { font: 700 1.5rem/1 var(--titulo); color: var(--nota); }
+
+.explicacion { max-width: 72ch; margin-block: 1.5rem; font-size: 1.125rem; }
+code { font-family: var(--codigo); font-size: .92em; background: var(--blanco); padding: .05em .3em; border-radius: 3px; overflow-wrap: anywhere; }
+
+h2 { margin: 0; font: 700 1.5rem/1.2 var(--titulo); }
+.como { margin-bottom: 2rem; padding: 1rem 1.1rem 1.2rem; background: var(--blanco); border: 2px solid var(--tinta); border-radius: 4px; }
+.como ol { margin: .6rem 0 1rem; padding-left: 1.4rem; }
+.como li + li { margin-top: .2rem; }
+.como code { background: var(--papel); }
+
+.ejercicio { padding-block: 1.5rem; border-top: 2px solid #AEBBD3; }
+.encabezado { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.lenguaje { padding: .05rem .5rem; background: var(--nota); border: 2px solid var(--tinta); border-radius: 3px; font-weight: 700; font-size: .9rem; }
+.enunciado { margin: .5rem 0 .9rem; max-width: 72ch; }
+
+.datos { margin: 0 0 1rem; }
+figcaption { margin-bottom: .3rem; font-weight: 600; font-size: .95rem; }
+.desplazable { overflow-x: auto; border: 2px solid var(--tinta); border-radius: 4px; background: var(--blanco); }
+table { width: 100%; border-collapse: collapse; font: .92rem/1.35 var(--codigo); }
+th, td { padding: .3rem .55rem; text-align: left; white-space: nowrap; border-bottom: 1px solid #D5DDEB; }
+th { background: var(--casillero); color: var(--blanco); font-weight: 600; }
+tbody tr:last-child td { border-bottom: 0; }
+td.nulo { color: var(--pista); font-style: italic; }
+
+.ejemplos { margin: 0 0 1rem; padding: .6rem .75rem; list-style: none; background: var(--blanco); border: 2px solid var(--tinta); border-radius: 4px; }
+.ejemplos li + li { margin-top: .35rem; }
+.ejemplos code { background: var(--papel); }
+
+.pistas { margin: 0 0 .75rem; padding: 0; list-style: none; }
+.pistas li { max-width: 72ch; padding: .5rem .8rem; background: #FFF6CC; border-left: 6px solid var(--nota); }
+.pistas li + li { margin-top: 4px; }
+.pistas code { background: var(--blanco); }
+
+.mandos { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.25rem; margin-bottom: .9rem; }
+.boton {
+  min-height: 46px; padding: .45rem 1.05rem; display: inline-flex; align-items: center;
+  background: var(--nota); color: var(--tinta); text-decoration: none; font-weight: 700; cursor: pointer;
+  border: 2px solid var(--tinta); border-radius: 4px; box-shadow: 0 3px 0 var(--tinta);
+  overflow-wrap: anywhere;
+}
+.boton:hover:not(:disabled) { background: #FFE27A; }
+.boton:active:not(:disabled) { transform: translateY(3px); box-shadow: none; }
+.boton.sobrio { background: var(--blanco); }
+.boton:disabled { opacity: .55; box-shadow: none; cursor: default; }
+.hecho { display: inline-flex; align-items: center; gap: .45rem; min-height: 44px; cursor: pointer; font-weight: 600; }
+.hecho input { width: 22px; height: 22px; accent-color: var(--exito); }
+
+.solucion summary {
+  width: fit-content; min-height: 44px; display: flex; align-items: center; cursor: pointer;
+  font-weight: 700; text-decoration: underline;
+}
+.solucion pre { margin: .3rem 0 .6rem; padding: .7rem .8rem; background: var(--hueco); color: #F2F6FF; border-radius: 4px; overflow-x: auto; }
+.solucion pre code { background: transparent; padding: 0; color: inherit; font-size: .95rem; line-height: 1.5; overflow-wrap: normal; }
+.solucion p { margin: 0; max-width: 72ch; }
+</style>
+</head>
+<body>
+<header class="banner">
+  <div class="ancho">
+    <a href="../index.html">Todas las entregas</a>
+    <h1>Las parejas</h1>
+    <p>Entrega 5: cruzar tablas</p>
+  </div>
+</header>
+<div class="marcador">
+  <div class="ancho">
+    <ol id="progreso" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li></ol>
+    <div class="cuenta"><span id="hechos">0</span> de 6 resueltos</div>
+  </div>
+</div>
+<main class="ancho">
+  <p class="explicacion">Casi nunca tienes los datos en una sola tabla: los pedidos guardan el id del cliente y el nombre vive en otra parte, así que hay que cruzarlas por esa columna común. En Python, la forma rápida es construir primero un diccionario que vaya del id al registro y consultarlo en cada vuelta; en SQL lo hace <code>JOIN</code>. La pregunta clave siempre es qué hacer con las filas que no encuentran pareja: <code>INNER JOIN</code> las descarta y <code>LEFT JOIN</code> las conserva con NULL.</p>
+  <section class="como">
+    <h2>Cómo practicar</h2>
+    <ol>
+      <li>Descarga el archivo y ábrelo en tu editor.</li>
+      <li>Completa las funciones y las consultas.</li>
+      <li>Ejecuta <code>python entrega_05.py</code> para ver qué casos pasan. Solo necesitas Python: SQLite viene incluido.</li>
+      <li>Si te atascas, pide una pista. Al terminar, compara con la solución.</li>
+    </ol>
+    <a class="boton" id="descargar" href="data:text/x-python;base64,IyBFbnRyZWdhIDU6IENydXphciB0YWJsYXMKIyBDb21wbGV0YSBsYXMgZnVuY2lvbmVzIHkgbGFzIGNvbnN1bHRhcywgeSBlamVjdXRhIGVzdGUgYXJjaGl2bzoKIyAgICAgcHl0aG9uIGVudHJlZ2FfMDUucHkKIyBTb2xvIG5lY2VzaXRhcyBQeXRob246IFNRTGl0ZSB2aWVuZSBpbmNsdWlkby4KCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQojIEVqZXJjaWNpbyAxOiDCv0RlIHF1acOpbiBlcyBlbCBwZWRpZG8/IChQeXRob24pCiMgRXNjcmliZSBub21icmVzX2RlX3BlZGlkb3MgcGFyYSBxdWUgZGV2dWVsdmEsIGVuIGVsIG9yZGVuIGRlIHBlZGlkb3MsIGVsCiMgbm9tYnJlIGRlbCBjbGllbnRlIGRlIGNhZGEgcGVkaWRvLiBDYWRhIHBlZGlkbyBlcyB1biBkaWNjaW9uYXJpbyBjb24gaWQgeQojIGNsaWVudGVfaWQsIHkgY2FkYSBjbGllbnRlIHVubyBjb24gaWQgeSBub21icmUuIFNpIGVsIGNsaWVudGUgbm8gZXhpc3RlLAojIHBvbiAiRGVzY29ub2NpZG8iLgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KZGVmIG5vbWJyZXNfZGVfcGVkaWRvcyhwZWRpZG9zLCBjbGllbnRlcyk6CiAgICAjIEVzY3JpYmUgdHUgc29sdWNpw7NuIGFxdcOtIHkgYm9ycmEgbGEgbMOtbmVhIGRlIGFiYWpvCiAgICByYWlzZSBOb3RJbXBsZW1lbnRlZEVycm9yCgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyBFamVyY2ljaW8gMjogVmVudGFzIGNvbiBwcmVjaW8gKFNRTCkKIyBQYXJhIGNhZGEgdmVudGEgY3V5byBwcm9kdWN0byBleGlzdGUgZW4gZWwgY2F0w6Fsb2dvLCBtdWVzdHJhIGVsIGlkIGRlIGxhCiMgdmVudGEsIGVsIG5vbWJyZSBkZWwgcHJvZHVjdG8geSBlbCBpbXBvcnRlIChjYW50aWRhZCBwb3IgcHJlY2lvKS4gTGFzCiMgdmVudGFzIGRlIHByb2R1Y3RvcyBxdWUgbm8gZXN0w6FuIGVuIGVsIGNhdMOhbG9nbyBubyBzYWxlbi4gT3JkZW5hIHBvciBpZCBkZQojIHZlbnRhLgojIFRhYmxhIHByb2R1Y3RvczogaWQsIG5vbWJyZSwgcHJlY2lvCiMgVGFibGEgdmVudGFzOiBpZCwgcHJvZHVjdG9faWQsIGNhbnRpZGFkCiMgQ29sdW1uYXMgZGVsIHJlc3VsdGFkbzogdmVudGEsIHByb2R1Y3RvLCBpbXBvcnRlCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpDT05TVUxUQV8yID0gIiIiCi0tIEVzY3JpYmUgdHUgY29uc3VsdGEgYXF1w60KIiIiCgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyBFamVyY2ljaW8gMzogQ2xpZW50ZXMgc2luIHBlZGlkb3MgKFB5dGhvbikKIyBFc2NyaWJlIHNpbl9wZWRpZG9zIHBhcmEgcXVlIGRldnVlbHZhIGxvcyBub21icmVzIGRlIGxvcyBjbGllbnRlcyBxdWUgbm8KIyB0aWVuZW4gbmluZ8O6biBwZWRpZG8sIGVuIGVsIG9yZGVuIGRlIGNsaWVudGVzLiBDYWRhIGNsaWVudGUgdGllbmUgaWQgeQojIG5vbWJyZSwgeSBjYWRhIHBlZGlkbyB0aWVuZSBpZCB5IGNsaWVudGVfaWQuCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpkZWYgc2luX3BlZGlkb3MoY2xpZW50ZXMsIHBlZGlkb3MpOgogICAgIyBFc2NyaWJlIHR1IHNvbHVjacOzbiBhcXXDrSB5IGJvcnJhIGxhIGzDrW5lYSBkZSBhYmFqbwogICAgcmFpc2UgTm90SW1wbGVtZW50ZWRFcnJvcgoKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgRWplcmNpY2lvIDQ6IFByb2R1Y3RvcyBxdWUgbmFkaWUgY29tcHLDsyAoU1FMKQojIE11ZXN0cmEgZWwgbm9tYnJlIGRlIGxvcyBwcm9kdWN0b3MgcXVlIG5vIGFwYXJlY2VuIGVuIG5pbmd1bmEgdmVudGEsCiMgb3JkZW5hZG9zIGFsZmFiw6l0aWNhbWVudGUuIE9qbzogYWxndW5hIHZlbnRhIHB1ZWRlIHRlbmVyIGVsIHByb2R1Y3RvX2lkCiMgdmFjw61vIChOVUxMKSBwb3IgdW4gZXJyb3IgZGUgY2FyZ2EuCiMgVGFibGEgcHJvZHVjdG9zOiBpZCwgbm9tYnJlCiMgVGFibGEgdmVudGFzOiBpZCwgcHJvZHVjdG9faWQsIGNhbnRpZGFkCiMgQ29sdW1uYXMgZGVsIHJlc3VsdGFkbzogbm9tYnJlCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpDT05TVUxUQV80ID0gIiIiCi0tIEVzY3JpYmUgdHUgY29uc3VsdGEgYXF1w60KIiIiCgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyBFamVyY2ljaW8gNTogVG90YWwgcG9yIGNsaWVudGUgKFB5dGhvbikKIyBFc2NyaWJlIHRvdGFsX3Bvcl9jbGllbnRlIHBhcmEgcXVlIGRldnVlbHZhIHVuIGRpY2Npb25hcmlvIHF1ZSB2YXlhIGRlbAojIG5vbWJyZSBkZSBjYWRhIGNsaWVudGUgYSBsYSBzdW1hIGRlIGxvcyBpbXBvcnRlcyBkZSBzdXMgcGVkaWRvcy4gTG9zCiMgY2xpZW50ZXMgc2luIHBlZGlkb3MgYXBhcmVjZW4gY29uIDAsIHkgbG9zIHBlZGlkb3MgZGUgY2xpZW50ZXMgcXVlIG5vCiMgZXhpc3RlbiBzZSBpZ25vcmFuLiBDYWRhIGNsaWVudGUgdGllbmUgaWQgeSBub21icmUsIHkgY2FkYSBwZWRpZG8KIyBjbGllbnRlX2lkIGUgaW1wb3J0ZS4gTm8gaGF5IGRvcyBjbGllbnRlcyBjb24gZWwgbWlzbW8gbm9tYnJlLgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KZGVmIHRvdGFsX3Bvcl9jbGllbnRlKGNsaWVudGVzLCBwZWRpZG9zKToKICAgICMgRXNjcmliZSB0dSBzb2x1Y2nDs24gYXF1w60geSBib3JyYSBsYSBsw61uZWEgZGUgYWJham8KICAgIHJhaXNlIE5vdEltcGxlbWVudGVkRXJyb3IKCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQojIEVqZXJjaWNpbyA2OiBSZXN1bWVuIGRlIHRvZG9zIGxvcyBjbGllbnRlcyAoU1FMKQojIFBhcmEgY2FkYSBjbGllbnRlLCBpbmNsdWlkb3MgbG9zIHF1ZSBubyBoYW4gaGVjaG8gcGVkaWRvcywgbXVlc3RyYSBzdQojIG5vbWJyZSwgY3XDoW50b3MgcGVkaWRvcyB0aWVuZSB5IGxhIHN1bWEgZGUgc3VzIGltcG9ydGVzICgwIHNpIG5vIHRpZW5lKS4KIyBMb3MgcGVkaWRvcyBkZSBjbGllbnRlcyBxdWUgbm8gZXhpc3RlbiBubyBjdWVudGFuLiBPcmRlbmEgcG9yIG5vbWJyZS4KIyBUYWJsYSBjbGllbnRlczogaWQsIG5vbWJyZQojIFRhYmxhIHBlZGlkb3M6IGlkLCBjbGllbnRlX2lkLCBpbXBvcnRlCiMgQ29sdW1uYXMgZGVsIHJlc3VsdGFkbzogbm9tYnJlLCBwZWRpZG9zLCB0b3RhbAojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KQ09OU1VMVEFfNiA9ICIiIgotLSBFc2NyaWJlIHR1IGNvbnN1bHRhIGFxdcOtCiIiIgoKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgTm8gaGFjZSBmYWx0YSBjYW1iaWFyIG5hZGEgZGViYWpvIGRlIGVzdGEgbMOtbmVhCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpUSVRVTE8gPSAiRW50cmVnYSA1OiBDcnV6YXIgdGFibGFzIgpFSkVSQ0lDSU9TID0gWwogICAgeyJudW1lcm8iOiAxLCAidGl0dWxvIjogIsK/RGUgcXVpw6luIGVzIGVsIHBlZGlkbz8iLCAidGlwbyI6ICJweXRob24iLCAiZnVuY2lvbiI6IG5vbWJyZXNfZGVfcGVkaWRvcywgImNhc29zIjogWwogICAgICAgIChbW3siaWQiOiAxMCwgImNsaWVudGVfaWQiOiAyfSwgeyJpZCI6IDExLCAiY2xpZW50ZV9pZCI6IDF9LCB7ImlkIjogMTIsICJjbGllbnRlX2lkIjogMn1dLCBbeyJpZCI6IDEsICJub21icmUiOiAiQW5hIn0sIHsiaWQiOiAyLCAibm9tYnJlIjogIkx1aXMifSwgeyJpZCI6IDMsICJub21icmUiOiAiU29sIn1dXSwgWyJMdWlzIiwgIkFuYSIsICJMdWlzIl0pLAogICAgICAgIChbW3siaWQiOiAyMCwgImNsaWVudGVfaWQiOiAzfSwgeyJpZCI6IDIxLCAiY2xpZW50ZV9pZCI6IDl9XSwgW3siaWQiOiAzLCAibm9tYnJlIjogIlNvbCJ9XV0sIFsiU29sIiwgIkRlc2Nvbm9jaWRvIl0pLAogICAgICAgIChbW10sIFt7ImlkIjogMSwgIm5vbWJyZSI6ICJBbmEifV1dLCBbXSksCiAgICAgICAgKFtbeyJpZCI6IDEsICJjbGllbnRlX2lkIjogMX1dLCBbXV0sIFsiRGVzY29ub2NpZG8iXSksCiAgICAgICAgKFtbeyJpZCI6IDUsICJjbGllbnRlX2lkIjogN30sIHsiaWQiOiA2LCAiY2xpZW50ZV9pZCI6IDh9XSwgW3siaWQiOiAxLCAibm9tYnJlIjogIlVtYSJ9XV0sIFsiRGVzY29ub2NpZG8iLCAiRGVzY29ub2NpZG8iXSkKICAgIF19LAogICAgeyJudW1lcm8iOiAyLCAidGl0dWxvIjogIlZlbnRhcyBjb24gcHJlY2lvIiwgInRpcG8iOiAic3FsIiwgImNvbnN1bHRhIjogQ09OU1VMVEFfMiwgImNvbl9vcmRlbiI6IFRydWUsICJkYXRvcyI6IFsKICAgICAgICAoIkNSRUFURSBUQUJMRSBwcm9kdWN0b3MgKGlkLCBub21icmUsIHByZWNpbyk7IElOU0VSVCBJTlRPIHByb2R1Y3RvcyBWQUxVRVMgKDEsICdDYWbDqScsIDMpLCAoMiwgJ1TDqScsIDIpLCAoMywgJ1BhbicsIDEpOyBDUkVBVEUgVEFCTEUgdmVudGFzIChpZCwgcHJvZHVjdG9faWQsIGNhbnRpZGFkKTsgSU5TRVJUIElOVE8gdmVudGFzIFZBTFVFUyAoMSwgMywgNCksICgyLCAxLCAyKSwgKDMsIDksIDUpLCAoNCwgMiwgMyk7IiwgW1sxLCAiUGFuIiwgNF0sIFsyLCAiQ2Fmw6kiLCA2XSwgWzQsICJUw6kiLCA2XV0pLAogICAgICAgICgiQ1JFQVRFIFRBQkxFIHByb2R1Y3RvcyAoaWQsIG5vbWJyZSwgcHJlY2lvKTsgSU5TRVJUIElOVE8gcHJvZHVjdG9zIFZBTFVFUyAoMTAsICdMZWNoZScsIDIpLCAoMjAsICdRdWVzbycsIDUpOyBDUkVBVEUgVEFCTEUgdmVudGFzIChpZCwgcHJvZHVjdG9faWQsIGNhbnRpZGFkKTsgSU5TRVJUIElOVE8gdmVudGFzIFZBTFVFUyAoMSwgMjAsIDEpLCAoMiwgMTAsIDMpLCAoMywgMzAsIDIpOyIsIFtbMSwgIlF1ZXNvIiwgNV0sIFsyLCAiTGVjaGUiLCA2XV0pCiAgICBdfSwKICAgIHsibnVtZXJvIjogMywgInRpdHVsbyI6ICJDbGllbnRlcyBzaW4gcGVkaWRvcyIsICJ0aXBvIjogInB5dGhvbiIsICJmdW5jaW9uIjogc2luX3BlZGlkb3MsICJjYXNvcyI6IFsKICAgICAgICAoW1t7ImlkIjogMSwgIm5vbWJyZSI6ICJBbmEifSwgeyJpZCI6IDIsICJub21icmUiOiAiTHVpcyJ9LCB7ImlkIjogMywgIm5vbWJyZSI6ICJTb2wifV0sIFt7ImlkIjogMSwgImNsaWVudGVfaWQiOiAyfSwgeyJpZCI6IDIsICJjbGllbnRlX2lkIjogMn1dXSwgWyJBbmEiLCAiU29sIl0pLAogICAgICAgIChbW3siaWQiOiA1LCAibm9tYnJlIjogIlJpdGEifSwgeyJpZCI6IDYsICJub21icmUiOiAiVGl0byJ9XSwgW3siaWQiOiA2LCAiY2xpZW50ZV9pZCI6IDV9XV0sIFsiVGl0byJdKSwKICAgICAgICAoW1t7ImlkIjogMSwgIm5vbWJyZSI6ICJBbmEifSwgeyJpZCI6IDIsICJub21icmUiOiAiTHVpcyJ9XSwgW11dLCBbIkFuYSIsICJMdWlzIl0pLAogICAgICAgIChbW10sIFt7ImlkIjogMSwgImNsaWVudGVfaWQiOiAxfV1dLCBbXSksCiAgICAgICAgKFtbeyJpZCI6IDEsICJub21icmUiOiAiVW1hIn1dLCBbeyJpZCI6IDEsICJjbGllbnRlX2lkIjogOTl9XV0sIFsiVW1hIl0pCiAgICBdfSwKICAgIHsibnVtZXJvIjogNCwgInRpdHVsbyI6ICJQcm9kdWN0b3MgcXVlIG5hZGllIGNvbXByw7MiLCAidGlwbyI6ICJzcWwiLCAiY29uc3VsdGEiOiBDT05TVUxUQV80LCAiY29uX29yZGVuIjogVHJ1ZSwgImRhdG9zIjogWwogICAgICAgICgiQ1JFQVRFIFRBQkxFIHByb2R1Y3RvcyAoaWQsIG5vbWJyZSk7IElOU0VSVCBJTlRPIHByb2R1Y3RvcyBWQUxVRVMgKDEsICdDYWbDqScpLCAoMiwgJ1TDqScpLCAoMywgJ1BhbicpLCAoNCwgJ0FndWEnKTsgQ1JFQVRFIFRBQkxFIHZlbnRhcyAoaWQsIHByb2R1Y3RvX2lkLCBjYW50aWRhZCk7IElOU0VSVCBJTlRPIHZlbnRhcyBWQUxVRVMgKDEsIDEsIDIpLCAoMiwgMywgMSksICgzLCAxLCA1KTsiLCBbWyJBZ3VhIl0sIFsiVMOpIl1dKSwKICAgICAgICAoIkNSRUFURSBUQUJMRSBwcm9kdWN0b3MgKGlkLCBub21icmUpOyBJTlNFUlQgSU5UTyBwcm9kdWN0b3MgVkFMVUVTICgxLCAnTGVjaGUnKSwgKDIsICdNaWVsJyksICgzLCAnQXJyb3onKTsgQ1JFQVRFIFRBQkxFIHZlbnRhcyAoaWQsIHByb2R1Y3RvX2lkLCBjYW50aWRhZCk7IElOU0VSVCBJTlRPIHZlbnRhcyBWQUxVRVMgKDEsIDIsIDEpLCAoMiwgTlVMTCwgNCk7IiwgW1siQXJyb3oiXSwgWyJMZWNoZSJdXSkKICAgIF19LAogICAgeyJudW1lcm8iOiA1LCAidGl0dWxvIjogIlRvdGFsIHBvciBjbGllbnRlIiwgInRpcG8iOiAicHl0aG9uIiwgImZ1bmNpb24iOiB0b3RhbF9wb3JfY2xpZW50ZSwgImNhc29zIjogWwogICAgICAgIChbW3siaWQiOiAxLCAibm9tYnJlIjogIkFuYSJ9LCB7ImlkIjogMiwgIm5vbWJyZSI6ICJMdWlzIn0sIHsiaWQiOiAzLCAibm9tYnJlIjogIlNvbCJ9XSwgW3siY2xpZW50ZV9pZCI6IDEsICJpbXBvcnRlIjogMTB9LCB7ImNsaWVudGVfaWQiOiAzLCAiaW1wb3J0ZSI6IDV9LCB7ImNsaWVudGVfaWQiOiAxLCAiaW1wb3J0ZSI6IDd9XV0sIHsiQW5hIjogMTcsICJMdWlzIjogMCwgIlNvbCI6IDV9KSwKICAgICAgICAoW1t7ImlkIjogNCwgIm5vbWJyZSI6ICJSaXRhIn1dLCBbeyJjbGllbnRlX2lkIjogNCwgImltcG9ydGUiOiAzfSwgeyJjbGllbnRlX2lkIjogOCwgImltcG9ydGUiOiA1MH1dXSwgeyJSaXRhIjogM30pLAogICAgICAgIChbW3siaWQiOiAxLCAibm9tYnJlIjogIlVtYSJ9XSwgW11dLCB7IlVtYSI6IDB9KSwKICAgICAgICAoW1tdLCBbeyJjbGllbnRlX2lkIjogMSwgImltcG9ydGUiOiA5fV1dLCB7fSksCiAgICAgICAgKFtbeyJpZCI6IDcsICJub21icmUiOiAiSXbDoW4ifSwgeyJpZCI6IDIsICJub21icmUiOiAiRXZhIn1dLCBbeyJjbGllbnRlX2lkIjogMiwgImltcG9ydGUiOiA0fSwgeyJjbGllbnRlX2lkIjogMiwgImltcG9ydGUiOiA2fSwgeyJjbGllbnRlX2lkIjogNSwgImltcG9ydGUiOiAxfV1dLCB7Ikl2w6FuIjogMCwgIkV2YSI6IDEwfSkKICAgIF19LAogICAgeyJudW1lcm8iOiA2LCAidGl0dWxvIjogIlJlc3VtZW4gZGUgdG9kb3MgbG9zIGNsaWVudGVzIiwgInRpcG8iOiAic3FsIiwgImNvbnN1bHRhIjogQ09OU1VMVEFfNiwgImNvbl9vcmRlbiI6IFRydWUsICJkYXRvcyI6IFsKICAgICAgICAoIkNSRUFURSBUQUJMRSBjbGllbnRlcyAoaWQsIG5vbWJyZSk7IElOU0VSVCBJTlRPIGNsaWVudGVzIFZBTFVFUyAoMSwgJ0FuYScpLCAoMiwgJ0x1aXMnKSwgKDMsICdTb2wnKTsgQ1JFQVRFIFRBQkxFIHBlZGlkb3MgKGlkLCBjbGllbnRlX2lkLCBpbXBvcnRlKTsgSU5TRVJUIElOVE8gcGVkaWRvcyBWQUxVRVMgKDEsIDEsIDEwKSwgKDIsIDMsIDUpLCAoMywgMSwgNyk7IiwgW1siQW5hIiwgMiwgMTddLCBbIkx1aXMiLCAwLCAwXSwgWyJTb2wiLCAxLCA1XV0pLAogICAgICAgICgiQ1JFQVRFIFRBQkxFIGNsaWVudGVzIChpZCwgbm9tYnJlKTsgSU5TRVJUIElOVE8gY2xpZW50ZXMgVkFMVUVTICgxLCAnUml0YScpLCAoMiwgJ1RpdG8nKTsgQ1JFQVRFIFRBQkxFIHBlZGlkb3MgKGlkLCBjbGllbnRlX2lkLCBpbXBvcnRlKTsgSU5TRVJUIElOVE8gcGVkaWRvcyBWQUxVRVMgKDEsIDIsIDQpLCAoMiwgOSwgMzApOyIsIFtbIlJpdGEiLCAwLCAwXSwgWyJUaXRvIiwgMSwgNF1dKQogICAgXX0KXQoKaW1wb3J0IGNvcHkKaW1wb3J0IHNxbGl0ZTMKaW1wb3J0IHN5cwoKCmRlZiBfaWd1YWxlcyhhLCBiKToKICAgIGlmIGlzaW5zdGFuY2UoYSwgZmxvYXQpIG9yIGlzaW5zdGFuY2UoYiwgZmxvYXQpOgogICAgICAgIHRyeToKICAgICAgICAgICAgcmV0dXJuIGFicyhhIC0gYikgPCAxZS02CiAgICAgICAgZXhjZXB0IFR5cGVFcnJvcjoKICAgICAgICAgICAgcmV0dXJuIEZhbHNlCiAgICBpZiBpc2luc3RhbmNlKGEsIChsaXN0LCB0dXBsZSkpIGFuZCBpc2luc3RhbmNlKGIsIChsaXN0LCB0dXBsZSkpOgogICAgICAgIHJldHVybiBsZW4oYSkgPT0gbGVuKGIpIGFuZCBhbGwoX2lndWFsZXMoeCwgeSkgZm9yIHgsIHkgaW4gemlwKGEsIGIpKQogICAgaWYgaXNpbnN0YW5jZShhLCBkaWN0KSBhbmQgaXNpbnN0YW5jZShiLCBkaWN0KToKICAgICAgICByZXR1cm4gYS5rZXlzKCkgPT0gYi5rZXlzKCkgYW5kIGFsbChfaWd1YWxlcyhhW2tdLCBiW2tdKSBmb3IgayBpbiBhKQogICAgcmV0dXJuIGEgPT0gYgoKCmRlZiBfcmV2aXNhcl9weXRob24oZWplcmNpY2lvKToKICAgIG5vbWJyZSA9IGVqZXJjaWNpb1siZnVuY2lvbiJdLl9fbmFtZV9fCiAgICBmb3IgYXJncywgZXNwZXJhZG8gaW4gZWplcmNpY2lvWyJjYXNvcyJdOgogICAgICAgIGxsYW1hZGEgPSBmIntub21icmV9KHsnLCAnLmpvaW4ocmVwcihhKSBmb3IgYSBpbiBhcmdzKX0pIgogICAgICAgIHRyeToKICAgICAgICAgICAgb2J0ZW5pZG8gPSBlamVyY2ljaW9bImZ1bmNpb24iXSgqY29weS5kZWVwY29weShhcmdzKSkKICAgICAgICBleGNlcHQgTm90SW1wbGVtZW50ZWRFcnJvcjoKICAgICAgICAgICAgcmV0dXJuICJTSU4gRU1QRVpBUiIsIFtdCiAgICAgICAgZXhjZXB0IEV4Y2VwdGlvbiBhcyBlcnJvcjoKICAgICAgICAgICAgcmV0dXJuICJGQUxMQSIsIFtmIkNhc286IHtsbGFtYWRhfSIsIGYiRXJyb3I6IHt0eXBlKGVycm9yKS5fX25hbWVfX306IHtlcnJvcn0iXQogICAgICAgIGlmIG5vdCBfaWd1YWxlcyhvYnRlbmlkbywgZXNwZXJhZG8pOgogICAgICAgICAgICByZXR1cm4gIkZBTExBIiwgW2YiQ2Fzbzoge2xsYW1hZGF9IiwgZiJFc3BlcmFkbzoge2VzcGVyYWRvIXJ9IiwgZiJPYnRlbmlkbzoge29idGVuaWRvIXJ9Il0KICAgIHJldHVybiAiUEFTQSIsIFtdCgoKZGVmIF9yZXZpc2FyX3NxbChlamVyY2ljaW8pOgogICAgbGluZWFzID0gZWplcmNpY2lvWyJjb25zdWx0YSJdLnNwbGl0bGluZXMoKQogICAgaWYgbm90IGFueShsLnN0cmlwKCkgYW5kIG5vdCBsLnN0cmlwKCkuc3RhcnRzd2l0aCgiLS0iKSBmb3IgbCBpbiBsaW5lYXMpOgogICAgICAgIHJldHVybiAiU0lOIEVNUEVaQVIiLCBbXQogICAgZm9yIHByZXBhcmFjaW9uLCBlc3BlcmFkbyBpbiBlamVyY2ljaW9bImRhdG9zIl06CiAgICAgICAgY29uZXhpb24gPSBzcWxpdGUzLmNvbm5lY3QoIjptZW1vcnk6IikKICAgICAgICBjb25leGlvbi5leGVjdXRlc2NyaXB0KHByZXBhcmFjaW9uKQogICAgICAgIHRyeToKICAgICAgICAgICAgb2J0ZW5pZG8gPSBjb25leGlvbi5leGVjdXRlKGVqZXJjaWNpb1siY29uc3VsdGEiXSkuZmV0Y2hhbGwoKQogICAgICAgIGV4Y2VwdCBzcWxpdGUzLkVycm9yIGFzIGVycm9yOgogICAgICAgICAgICByZXR1cm4gIkZBTExBIiwgW2YiRXJyb3IgZW4gbGEgY29uc3VsdGE6IHtlcnJvcn0iXQogICAgICAgIGZpbmFsbHk6CiAgICAgICAgICAgIGNvbmV4aW9uLmNvbW1pdCgpCiAgICAgICAgY29uZXhpb24uY2xvc2UoKQogICAgICAgIGNvbXBhcmFyID0gKG9idGVuaWRvLCBlc3BlcmFkbykKICAgICAgICBpZiBub3QgZWplcmNpY2lvWyJjb25fb3JkZW4iXToKICAgICAgICAgICAgY29tcGFyYXIgPSAoc29ydGVkKG9idGVuaWRvLCBrZXk9cmVwciksIHNvcnRlZCgodHVwbGUoZikgZm9yIGYgaW4gZXNwZXJhZG8pLCBrZXk9cmVwcikpCiAgICAgICAgaWYgbm90IF9pZ3VhbGVzKCpjb21wYXJhcik6CiAgICAgICAgICAgIHJldHVybiAiRkFMTEEiLCBbCiAgICAgICAgICAgICAgICBmIkVzcGVyYWRvOiB7W3R1cGxlKGYpIGZvciBmIGluIGVzcGVyYWRvXX0iLAogICAgICAgICAgICAgICAgZiJPYnRlbmlkbzoge29idGVuaWRvfSIKICAgICAgICAgICAgXQogICAgcmV0dXJuICJQQVNBIiwgW10KCgpkZWYgbWFpbigpOgogICAgc3lzLnN0ZG91dC5yZWNvbmZpZ3VyZShlbmNvZGluZz0idXRmLTgiKQogICAgcHJpbnQoVElUVUxPKQogICAgcHJpbnQoKQogICAgY29ycmVjdG9zID0gMAogICAgZm9yIGVqZXJjaWNpbyBpbiBFSkVSQ0lDSU9TOgogICAgICAgIHJldmlzYXIgPSBfcmV2aXNhcl9weXRob24gaWYgZWplcmNpY2lvWyJ0aXBvIl0gPT0gInB5dGhvbiIgZWxzZSBfcmV2aXNhcl9zcWwKICAgICAgICBlc3RhZG8sIGRldGFsbGVzID0gcmV2aXNhcihlamVyY2ljaW8pCiAgICAgICAgcHJpbnQoZiJ7ZWplcmNpY2lvWydudW1lcm8nXX0uIHtlamVyY2ljaW9bJ3RpdHVsbyddfToge2VzdGFkb30iKQogICAgICAgIGZvciBkZXRhbGxlIGluIGRldGFsbGVzOgogICAgICAgICAgICBwcmludChmIiAgIHtkZXRhbGxlfSIpCiAgICAgICAgaWYgZXN0YWRvID09ICJQQVNBIjoKICAgICAgICAgICAgY29ycmVjdG9zICs9IDEKICAgIHByaW50KCkKICAgIHByaW50KGYiUmVzdWx0YWRvOiB7Y29ycmVjdG9zfSBkZSB7bGVuKEVKRVJDSUNJT1MpfSBlamVyY2ljaW9zIGNvcnJlY3Rvcy4iKQogICAgcmV0dXJuIDAgaWYgY29ycmVjdG9zID09IGxlbihFSkVSQ0lDSU9TKSBlbHNlIDEKCgppZiBfX25hbWVfXyA9PSAiX19tYWluX18iOgogICAgc3lzLmV4aXQobWFpbigpKQo=" download="entrega_05.py">Descargar entrega_05.py</a>
+  </section>
+  <article class="ejercicio" id="ejercicio-1" data-ejercicio="1">
+      <div class="encabezado"><span class="lenguaje">Python</span><h2>1. ¿De quién es el pedido?</h2></div>
+      <p class="enunciado">Escribe <code>nombres_de_pedidos</code> para que devuelva, en el orden de <code>pedidos</code>, el nombre del cliente de cada pedido. Cada pedido es un diccionario con <code>id</code> y <code>cliente_id</code>, y cada cliente uno con <code>id</code> y <code>nombre</code>. Si el cliente no existe, pon <code>&quot;Desconocido&quot;</code>.</p>
+      <ul class="ejemplos"><li><code>nombres_de_pedidos([{&quot;id&quot;: 10, &quot;cliente_id&quot;: 2}, {&quot;id&quot;: 11, &quot;cliente_id&quot;: 1}, {&quot;id&quot;: 12, &quot;cliente_id&quot;: 2}], [{&quot;id&quot;: 1, &quot;nombre&quot;: &quot;Ana&quot;}, {&quot;id&quot;: 2, &quot;nombre&quot;: &quot;Luis&quot;}, {&quot;id&quot;: 3, &quot;nombre&quot;: &quot;Sol&quot;}])</code> devuelve <code>[&quot;Luis&quot;, &quot;Ana&quot;, &quot;Luis&quot;]</code></li><li><code>nombres_de_pedidos([{&quot;id&quot;: 20, &quot;cliente_id&quot;: 3}, {&quot;id&quot;: 21, &quot;cliente_id&quot;: 9}], [{&quot;id&quot;: 3, &quot;nombre&quot;: &quot;Sol&quot;}])</code> devuelve <code>[&quot;Sol&quot;, &quot;Desconocido&quot;]</code></li></ul>
+      <ol class="pistas" aria-live="polite"><li hidden>Buscar el cliente recorriendo toda la lista en cada pedido funciona, pero repite el mismo trabajo una y otra vez.</li><li hidden>Prepara antes del bucle un diccionario cuya clave sea el id del cliente.</li><li hidden>Al consultar un diccionario puedes indicar un valor por defecto para cuando la clave no está; así no se cae ni se pierde el pedido.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>def nombres_de_pedidos(pedidos, clientes):
+    nombre_por_id = {c['id']: c['nombre'] for c in clientes}
+    return [nombre_por_id.get(p['cliente_id'], 'Desconocido') for p in pedidos]</code></pre>
+        <p>El diccionario se construye una vez y cada búsqueda es inmediata, en lugar de recorrer la lista de clientes por cada pedido. Filtrar los pedidos sin cliente parece limpio, pero cambia la longitud del resultado y ya no se sabe qué nombre corresponde a qué pedido; <code>get</code> con un valor por defecto conserva uno por pedido.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-2" data-ejercicio="2">
+      <div class="encabezado"><span class="lenguaje">SQL</span><h2>2. Ventas con precio</h2></div>
+      <p class="enunciado">Para cada venta cuyo producto existe en el catálogo, muestra el id de la venta, el nombre del producto y el importe (<code>cantidad</code> por <code>precio</code>). Las ventas de productos que no están en el catálogo no salen. Ordena por id de venta.</p>
+      <figure class="datos">
+        <figcaption>Tabla productos</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>id</th><th>nombre</th><th>precio</th></tr></thead>
+          <tbody><tr><td>1</td><td>Café</td><td>3</td></tr><tr><td>2</td><td>Té</td><td>2</td></tr><tr><td>3</td><td>Pan</td><td>1</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Tabla ventas</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>id</th><th>producto_id</th><th>cantidad</th></tr></thead>
+          <tbody><tr><td>1</td><td>3</td><td>4</td></tr><tr><td>2</td><td>1</td><td>2</td></tr><tr><td>3</td><td>9</td><td>5</td></tr><tr><td>4</td><td>2</td><td>3</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Resultado esperado</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>venta</th><th>producto</th><th>importe</th></tr></thead>
+          <tbody><tr><td>1</td><td>Pan</td><td>4</td></tr><tr><td>2</td><td>Café</td><td>6</td></tr><tr><td>4</td><td>Té</td><td>6</td></tr></tbody>
+        </table></div>
+      </figure>
+      <ol class="pistas" aria-live="polite"><li hidden>Las dos tablas tienen una columna <code>id</code>, pero no significan lo mismo: ¿qué columna de <code>ventas</code> apunta a un producto?</li><li hidden>Como las ventas sin producto no deben salir, te sirve el cruce que solo conserva las filas con pareja en ambos lados.</li><li hidden>Pon un alias corto a cada tabla para dejar claro de cuál sale cada columna, en especial en el <code>ON</code> y en el <code>ORDER BY</code>.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>SELECT v.id AS venta, p.nombre AS producto, v.cantidad * p.precio AS importe
+FROM ventas AS v
+JOIN productos AS p ON p.id = v.producto_id
+ORDER BY v.id;</code></pre>
+        <p><code>JOIN</code> a secas es un <code>INNER JOIN</code>: la venta 3 apunta al producto 9, que no existe, y desaparece sola. La trampa es unir por <code>id</code> con <code>id</code>: la consulta no da error y devuelve filas con buena pinta, pero empareja cada venta con el producto que tiene su mismo número, no con el que vendió.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-3" data-ejercicio="3">
+      <div class="encabezado"><span class="lenguaje">Python</span><h2>3. Clientes sin pedidos</h2></div>
+      <p class="enunciado">Escribe <code>sin_pedidos</code> para que devuelva los nombres de los clientes que no tienen ningún pedido, en el orden de <code>clientes</code>. Cada cliente tiene <code>id</code> y <code>nombre</code>, y cada pedido tiene <code>id</code> y <code>cliente_id</code>.</p>
+      <ul class="ejemplos"><li><code>sin_pedidos([{&quot;id&quot;: 1, &quot;nombre&quot;: &quot;Ana&quot;}, {&quot;id&quot;: 2, &quot;nombre&quot;: &quot;Luis&quot;}, {&quot;id&quot;: 3, &quot;nombre&quot;: &quot;Sol&quot;}], [{&quot;id&quot;: 1, &quot;cliente_id&quot;: 2}, {&quot;id&quot;: 2, &quot;cliente_id&quot;: 2}])</code> devuelve <code>[&quot;Ana&quot;, &quot;Sol&quot;]</code></li><li><code>sin_pedidos([{&quot;id&quot;: 5, &quot;nombre&quot;: &quot;Rita&quot;}, {&quot;id&quot;: 6, &quot;nombre&quot;: &quot;Tito&quot;}], [{&quot;id&quot;: 6, &quot;cliente_id&quot;: 5}])</code> devuelve <code>[&quot;Tito&quot;]</code></li></ul>
+      <ol class="pistas" aria-live="polite"><li hidden>Primero reúne los ids de los clientes que sí compraron; no te importa cuántas veces compró cada uno.</li><li hidden>Fíjate bien en qué campo del pedido identifica al cliente: el pedido también tiene su propio <code>id</code>.</li><li hidden>Después recorre los clientes en orden y quédate con los que no están en ese conjunto.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>def sin_pedidos(clientes, pedidos):
+    con_pedido = {p['cliente_id'] for p in pedidos}
+    return [c['nombre'] for c in clientes if c['id'] not in con_pedido]</code></pre>
+        <p>Un conjunto responde al instante si un id ya apareció, así que basta con dos pasadas. Es el equivalente en Python a buscar filas sin pareja. Confundir <code>id</code> con <code>cliente_id</code> es el error más común al cruzar datos, y suele pasar desapercibido cuando los números se parecen.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-4" data-ejercicio="4">
+      <div class="encabezado"><span class="lenguaje">SQL</span><h2>4. Productos que nadie compró</h2></div>
+      <p class="enunciado">Muestra el nombre de los productos que no aparecen en ninguna venta, ordenados alfabéticamente. Ojo: alguna venta puede tener el <code>producto_id</code> vacío (NULL) por un error de carga.</p>
+      <figure class="datos">
+        <figcaption>Tabla productos</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>id</th><th>nombre</th></tr></thead>
+          <tbody><tr><td>1</td><td>Café</td></tr><tr><td>2</td><td>Té</td></tr><tr><td>3</td><td>Pan</td></tr><tr><td>4</td><td>Agua</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Tabla ventas</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>id</th><th>producto_id</th><th>cantidad</th></tr></thead>
+          <tbody><tr><td>1</td><td>1</td><td>2</td></tr><tr><td>2</td><td>3</td><td>1</td></tr><tr><td>3</td><td>1</td><td>5</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Resultado esperado</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>nombre</th></tr></thead>
+          <tbody><tr><td>Agua</td></tr><tr><td>Té</td></tr></tbody>
+        </table></div>
+      </figure>
+      <ol class="pistas" aria-live="polite"><li hidden>Necesitas un cruce que conserve todos los productos, aunque no tengan ninguna venta.</li><li hidden>Cuando un producto no encuentra pareja, las columnas de <code>ventas</code> llegan vacías en su fila.</li><li hidden>Nada es igual a NULL, ni siquiera otro NULL: para preguntar si un valor falta hay un operador propio.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>SELECT p.nombre
+FROM productos AS p
+LEFT JOIN ventas AS v ON v.producto_id = p.id
+WHERE v.id IS NULL
+ORDER BY p.nombre;</code></pre>
+        <p><code>LEFT JOIN</code> deja todos los productos y rellena con NULL las columnas de <code>ventas</code> cuando no hay pareja; el <code>WHERE</code> se queda justo con esas filas. <code>v.id = NULL</code> nunca es verdadero y devuelve una tabla vacía sin dar error. Otra trampa: <code>WHERE id NOT IN (SELECT producto_id FROM ventas)</code> tampoco devuelve nada en cuanto hay un <code>producto_id</code> NULL, y esto pasa en cualquier motor, no solo en SQLite.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-5" data-ejercicio="5">
+      <div class="encabezado"><span class="lenguaje">Python</span><h2>5. Total por cliente</h2></div>
+      <p class="enunciado">Escribe <code>total_por_cliente</code> para que devuelva un diccionario que vaya del nombre de cada cliente a la suma de los importes de sus pedidos. Los clientes sin pedidos aparecen con <code>0</code>, y los pedidos de clientes que no existen se ignoran. Cada cliente tiene <code>id</code> y <code>nombre</code>, y cada pedido <code>cliente_id</code> e <code>importe</code>. No hay dos clientes con el mismo nombre.</p>
+      <ul class="ejemplos"><li><code>total_por_cliente([{&quot;id&quot;: 1, &quot;nombre&quot;: &quot;Ana&quot;}, {&quot;id&quot;: 2, &quot;nombre&quot;: &quot;Luis&quot;}, {&quot;id&quot;: 3, &quot;nombre&quot;: &quot;Sol&quot;}], [{&quot;cliente_id&quot;: 1, &quot;importe&quot;: 10}, {&quot;cliente_id&quot;: 3, &quot;importe&quot;: 5}, {&quot;cliente_id&quot;: 1, &quot;importe&quot;: 7}])</code> devuelve <code>{&quot;Ana&quot;: 17, &quot;Luis&quot;: 0, &quot;Sol&quot;: 5}</code></li><li><code>total_por_cliente([{&quot;id&quot;: 4, &quot;nombre&quot;: &quot;Rita&quot;}], [{&quot;cliente_id&quot;: 4, &quot;importe&quot;: 3}, {&quot;cliente_id&quot;: 8, &quot;importe&quot;: 50}])</code> devuelve <code>{&quot;Rita&quot;: 3}</code></li></ul>
+      <ol class="pistas" aria-live="polite"><li hidden>Si solo recorres los pedidos, los clientes que no compraron nunca llegan a aparecer en el resultado.</li><li hidden>Empieza con un acumulador que ya tenga a todos los clientes con total 0, usando su id como clave.</li><li hidden>Al sumar, comprueba que el cliente del pedido esté en el acumulador; al final, traduce cada id a su nombre.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>def total_por_cliente(clientes, pedidos):
+    totales = {c['id']: 0 for c in clientes}
+    for p in pedidos:
+        if p['cliente_id'] in totales:
+            totales[p['cliente_id']] += p['importe']
+    return {c['nombre']: totales[c['id']] for c in clientes}</code></pre>
+        <p>Es un <code>LEFT JOIN</code> con suma hecho a mano: el lado que no se puede perder son los clientes, así que el acumulador parte de ellos. Construir el resultado solo desde los pedidos funciona hasta que aparece un cliente sin compras y desaparece del informe. Acumular por id y no por nombre evita mezclar datos si algún día dos clientes se llaman igual.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-6" data-ejercicio="6">
+      <div class="encabezado"><span class="lenguaje">SQL</span><h2>6. Resumen de todos los clientes</h2></div>
+      <p class="enunciado">Para cada cliente, incluidos los que no han hecho pedidos, muestra su nombre, cuántos pedidos tiene y la suma de sus importes (0 si no tiene). Los pedidos de clientes que no existen no cuentan. Ordena por nombre.</p>
+      <figure class="datos">
+        <figcaption>Tabla clientes</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>id</th><th>nombre</th></tr></thead>
+          <tbody><tr><td>1</td><td>Ana</td></tr><tr><td>2</td><td>Luis</td></tr><tr><td>3</td><td>Sol</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Tabla pedidos</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>id</th><th>cliente_id</th><th>importe</th></tr></thead>
+          <tbody><tr><td>1</td><td>1</td><td>10</td></tr><tr><td>2</td><td>3</td><td>5</td></tr><tr><td>3</td><td>1</td><td>7</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Resultado esperado</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>nombre</th><th>pedidos</th><th>total</th></tr></thead>
+          <tbody><tr><td>Ana</td><td>2</td><td>17</td></tr><tr><td>Luis</td><td>0</td><td>0</td></tr><tr><td>Sol</td><td>1</td><td>5</td></tr></tbody>
+        </table></div>
+      </figure>
+      <ol class="pistas" aria-live="polite"><li hidden>Parte de <code>clientes</code> y cruza con <code>pedidos</code> de forma que ningún cliente se quede fuera.</li><li hidden>Un cliente sin pedidos sigue ocupando una fila tras el cruce, con las columnas de <code>pedidos</code> en NULL. Piensa qué cuenta cada forma de <code>COUNT</code> en esa fila.</li><li hidden>La suma de un grupo sin valores no es 0 sino NULL: hay una función que cambia un NULL por el valor que le digas.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>SELECT c.nombre, COUNT(p.id) AS pedidos, COALESCE(SUM(p.importe), 0) AS total
+FROM clientes AS c
+LEFT JOIN pedidos AS p ON p.cliente_id = c.id
+GROUP BY c.id, c.nombre
+ORDER BY c.nombre;</code></pre>
+        <p>Tras el <code>LEFT JOIN</code>, Luis tiene una fila con <code>p.id</code> en NULL: <code>COUNT(*)</code> la cuenta como un pedido y <code>COUNT(p.id)</code> no. Agrupar por <code>c.id</code> además del nombre evita juntar a dos clientes que se llamen igual. <code>COALESCE</code> hace falta porque <code>SUM</code> de un grupo sin valores devuelve NULL, y eso pasa igual en todos los motores.</p>
+      </details>
+    </article>
+</main>
+<script>
+const CLAVE_ENTREGA = "retos-python-sql:cruzar-tablas:hechos";
+const ejercicios = [...document.querySelectorAll('.ejercicio')];
+
+function leerHechos() {
+  try {
+    return JSON.parse(localStorage.getItem(CLAVE_ENTREGA)) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function guardarHechos(hechos) {
+  try {
+    localStorage.setItem(CLAVE_ENTREGA, JSON.stringify(hechos));
+  } catch (e) { /* sin almacenamiento: el contador dura hasta recargar */ }
+}
+
+function pintarAvance() {
+  const marcados = ejercicios.filter((e) => e.querySelector('.marcar').checked);
+  document.getElementById('hechos').textContent = String(marcados.length);
+  [...document.getElementById('progreso').children].forEach((caja, i) => {
+    caja.classList.toggle('hecho', i < marcados.length);
+  });
+  guardarHechos(marcados.map((e) => e.dataset.ejercicio));
+}
+
+const iniciales = leerHechos();
+ejercicios.forEach((ejercicio) => {
+  const marcar = ejercicio.querySelector('.marcar');
+  marcar.checked = iniciales.includes(ejercicio.dataset.ejercicio);
+  marcar.addEventListener('change', pintarAvance);
+
+  const boton = ejercicio.querySelector('.ver-pista');
+  const pistas = [...ejercicio.querySelectorAll('.pistas li')];
+  boton.addEventListener('click', () => {
+    const siguiente = pistas.findIndex((p) => p.hidden);
+    pistas[siguiente].hidden = false;
+    if (siguiente + 1 < pistas.length) {
+      boton.textContent = `Ver pista ${siguiente + 2} de ${pistas.length}`;
+    } else {
+      boton.textContent = 'No hay más pistas';
+      boton.disabled = true;
+    }
+  });
+});
+pintarAvance();
+</script>
+</body>
+</html>
