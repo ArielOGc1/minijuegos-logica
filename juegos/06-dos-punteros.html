@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Los dos extremos: dos punteros y orden | Retos de Python y SQL</title>
+<meta name="description" content="Ejercicios de Python y SQL sobre la técnica de dos punteros y el orden: palíndromos, combinar listas ordenadas, quitar repetidos, ORDER BY con LIMIT y OFFSET y el segundo valor más alto, con pistas y solución.">
+<link rel="icon" href="data:,">
+<style>
+:root {
+  color-scheme: light;
+  --papel: #E8EEF6;
+  --tinta: #14264F;
+  --casillero: #1F46A8;
+  --hueco: #0F2A6B;
+  --nota: #FFD23F;
+  --blanco: #FFFFFF;
+  --exito: #0B6E4F;
+  --pista: #A01D45;
+  --titulo: Rockwell, "Roboto Slab", "Sitka Text", Georgia, serif;
+  --texto: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --codigo: "Cascadia Code", Consolas, ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 60px; }
+body { margin: 0; background: var(--papel); color: var(--tinta); font: 1.0625rem/1.55 var(--texto); }
+a { color: inherit; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--pista); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.ancho { width: min(100% - 32px, 860px); margin-inline: auto; }
+
+.banner { background: var(--casillero); color: var(--blanco); padding: 1rem 0 1.5rem; }
+.banner a { font-size: .95rem; }
+.banner h1 { margin: .4rem 0 0; font: 700 clamp(2.5rem, 9vw, 4.25rem)/1.02 var(--titulo); color: var(--nota); }
+.banner p { margin: .25rem 0 0; font-size: 1.05rem; }
+
+.marcador { position: sticky; top: 0; z-index: 2; background: var(--tinta); color: var(--blanco); padding: .5rem 0; }
+.marcador .ancho { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+#progreso { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+#progreso li { width: 18px; height: 18px; background: var(--hueco); border: 2px solid #5D7CC9; border-radius: 2px; }
+#progreso li.hecho { background: var(--nota); border-color: var(--nota); }
+.cuenta { white-space: nowrap; }
+#hechos { font: 700 1.5rem/1 var(--titulo); color: var(--nota); }
+
+.explicacion { max-width: 72ch; margin-block: 1.5rem; font-size: 1.125rem; }
+code { font-family: var(--codigo); font-size: .92em; background: var(--blanco); padding: .05em .3em; border-radius: 3px; overflow-wrap: anywhere; }
+
+h2 { margin: 0; font: 700 1.5rem/1.2 var(--titulo); }
+.como { margin-bottom: 2rem; padding: 1rem 1.1rem 1.2rem; background: var(--blanco); border: 2px solid var(--tinta); border-radius: 4px; }
+.como ol { margin: .6rem 0 1rem; padding-left: 1.4rem; }
+.como li + li { margin-top: .2rem; }
+.como code { background: var(--papel); }
+
+.ejercicio { padding-block: 1.5rem; border-top: 2px solid #AEBBD3; }
+.encabezado { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.lenguaje { padding: .05rem .5rem; background: var(--nota); border: 2px solid var(--tinta); border-radius: 3px; font-weight: 700; font-size: .9rem; }
+.enunciado { margin: .5rem 0 .9rem; max-width: 72ch; }
+
+.datos { margin: 0 0 1rem; }
+figcaption { margin-bottom: .3rem; font-weight: 600; font-size: .95rem; }
+.desplazable { overflow-x: auto; border: 2px solid var(--tinta); border-radius: 4px; background: var(--blanco); }
+table { width: 100%; border-collapse: collapse; font: .92rem/1.35 var(--codigo); }
+th, td { padding: .3rem .55rem; text-align: left; white-space: nowrap; border-bottom: 1px solid #D5DDEB; }
+th { background: var(--casillero); color: var(--blanco); font-weight: 600; }
+tbody tr:last-child td { border-bottom: 0; }
+td.nulo { color: var(--pista); font-style: italic; }
+
+.ejemplos { margin: 0 0 1rem; padding: .6rem .75rem; list-style: none; background: var(--blanco); border: 2px solid var(--tinta); border-radius: 4px; }
+.ejemplos li + li { margin-top: .35rem; }
+.ejemplos code { background: var(--papel); }
+
+.pistas { margin: 0 0 .75rem; padding: 0; list-style: none; }
+.pistas li { max-width: 72ch; padding: .5rem .8rem; background: #FFF6CC; border-left: 6px solid var(--nota); }
+.pistas li + li { margin-top: 4px; }
+.pistas code { background: var(--blanco); }
+
+.mandos { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.25rem; margin-bottom: .9rem; }
+.boton {
+  min-height: 46px; padding: .45rem 1.05rem; display: inline-flex; align-items: center;
+  background: var(--nota); color: var(--tinta); text-decoration: none; font-weight: 700; cursor: pointer;
+  border: 2px solid var(--tinta); border-radius: 4px; box-shadow: 0 3px 0 var(--tinta);
+  overflow-wrap: anywhere;
+}
+.boton:hover:not(:disabled) { background: #FFE27A; }
+.boton:active:not(:disabled) { transform: translateY(3px); box-shadow: none; }
+.boton.sobrio { background: var(--blanco); }
+.boton:disabled { opacity: .55; box-shadow: none; cursor: default; }
+.hecho { display: inline-flex; align-items: center; gap: .45rem; min-height: 44px; cursor: pointer; font-weight: 600; }
+.hecho input { width: 22px; height: 22px; accent-color: var(--exito); }
+
+.solucion summary {
+  width: fit-content; min-height: 44px; display: flex; align-items: center; cursor: pointer;
+  font-weight: 700; text-decoration: underline;
+}
+.solucion pre { margin: .3rem 0 .6rem; padding: .7rem .8rem; background: var(--hueco); color: #F2F6FF; border-radius: 4px; overflow-x: auto; }
+.solucion pre code { background: transparent; padding: 0; color: inherit; font-size: .95rem; line-height: 1.5; overflow-wrap: normal; }
+.solucion p { margin: 0; max-width: 72ch; }
+</style>
+</head>
+<body>
+<header class="banner">
+  <div class="ancho">
+    <a href="../index.html">Todas las entregas</a>
+    <h1>Los dos extremos</h1>
+    <p>Entrega 6: dos punteros y orden</p>
+  </div>
+</header>
+<div class="marcador">
+  <div class="ancho">
+    <ol id="progreso" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li></ol>
+    <div class="cuenta"><span id="hechos">0</span> de 6 resueltos</div>
+  </div>
+</div>
+<main class="ancho">
+  <p class="explicacion">Con dos punteros recorres una secuencia desde dos sitios a la vez, por ejemplo uno desde cada extremo o uno en cada lista, y en cada paso avanzas el que toca según lo que ves. Funciona especialmente bien cuando los datos están ordenados, porque el orden te dice qué puntero mover sin tener que volver atrás. En SQL el orden lo pones tú con <code>ORDER BY</code>, y <code>LIMIT</code> con <code>OFFSET</code> te dejan quedarte con una porción concreta: los primeros, la segunda página o el segundo más alto.</p>
+  <section class="como">
+    <h2>Cómo practicar</h2>
+    <ol>
+      <li>Descarga el archivo y ábrelo en tu editor.</li>
+      <li>Completa las funciones y las consultas.</li>
+      <li>Ejecuta <code>python entrega_06.py</code> para ver qué casos pasan. Solo necesitas Python: SQLite viene incluido.</li>
+      <li>Si te atascas, pide una pista. Al terminar, compara con la solución.</li>
+    </ol>
+    <a class="boton" id="descargar" href="data:text/x-python;base64,IyBFbnRyZWdhIDY6IERvcyBwdW50ZXJvcyB5IG9yZGVuCiMgQ29tcGxldGEgbGFzIGZ1bmNpb25lcyB5IGxhcyBjb25zdWx0YXMsIHkgZWplY3V0YSBlc3RlIGFyY2hpdm86CiMgICAgIHB5dGhvbiBlbnRyZWdhXzA2LnB5CiMgU29sbyBuZWNlc2l0YXMgUHl0aG9uOiBTUUxpdGUgdmllbmUgaW5jbHVpZG8uCgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyBFamVyY2ljaW8gMTogU2UgbGVlIGlndWFsIGFsIHJldsOpcyAoUHl0aG9uKQojIEVzY3JpYmUgZXNfcGFsaW5kcm9tbyBwYXJhIHF1ZSBkZXZ1ZWx2YSBUcnVlIHNpIHRleHRvIHNlIGxlZSBpZ3VhbCBkZQojIGl6cXVpZXJkYSBhIGRlcmVjaGEgcXVlIGRlIGRlcmVjaGEgYSBpenF1aWVyZGEsIHRlbmllbmRvIGVuIGN1ZW50YSBzb2xvCiMgbGV0cmFzIHkgZMOtZ2l0b3MgeSBzaW4gZGlzdGluZ3VpciBtYXnDunNjdWxhcyBkZSBtaW7DunNjdWxhcy4gRXNwYWNpb3MsCiMgY29tYXMsIHNpZ25vcyBkZSBleGNsYW1hY2nDs24geSBkZW3DoXMgc2UgaWdub3Jhbi4gTG9zIHRleHRvcyBkZSBwcnVlYmEgbm8KIyBsbGV2YW4gdGlsZGVzLgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KZGVmIGVzX3BhbGluZHJvbW8odGV4dG8pOgogICAgIyBFc2NyaWJlIHR1IHNvbHVjacOzbiBhcXXDrSB5IGJvcnJhIGxhIGzDrW5lYSBkZSBhYmFqbwogICAgcmFpc2UgTm90SW1wbGVtZW50ZWRFcnJvcgoKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgRWplcmNpY2lvIDI6IEVsIHBvZGlvIGRlIHZlbnRhcyAoU1FMKQojIE11ZXN0cmEgZWwgbm9tYnJlIHkgbGFzIHVuaWRhZGVzIGRlIGxvcyAzIHByb2R1Y3RvcyBtw6FzIHZlbmRpZG9zLCBkZSBtw6FzIGEKIyBtZW5vcyB1bmlkYWRlcy4gU2kgZG9zIHByb2R1Y3RvcyBlbXBhdGFuIGVuIHVuaWRhZGVzLCB2YSBwcmltZXJvIGVsIGRlCiMgbm9tYnJlIGFsZmFiw6l0aWNhbWVudGUgbWVub3IuCiMgVGFibGEgcHJvZHVjdG9zOiBub21icmUsIHVuaWRhZGVzCiMgQ29sdW1uYXMgZGVsIHJlc3VsdGFkbzogbm9tYnJlLCB1bmlkYWRlcwojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KQ09OU1VMVEFfMiA9ICIiIgotLSBFc2NyaWJlIHR1IGNvbnN1bHRhIGFxdcOtCiIiIgoKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgRWplcmNpY2lvIDM6IFJlZ2lzdHJvcyBzaW4gcmVwZXRpciAoUHl0aG9uKQojIFVuIHNpc3RlbWEgZ3VhcmRhIGxvcyBpZHMgZGUgbG9zIHJlZ2lzdHJvcyBwcm9jZXNhZG9zIGVuIHVuYSBsaXN0YQojIG9yZGVuYWRhIGRlIG1lbm9yIGEgbWF5b3IsIHBlcm8gYWxndW5vcyBzZSBwcm9jZXNhcm9uIHZhcmlhcyB2ZWNlcy4KIyBFc2NyaWJlIGlkc191bmljb3MgcGFyYSBxdWUgZGV2dWVsdmEgdW5hIGxpc3RhIG51ZXZhIGNvbiBjYWRhIGlkIHVuYSBzb2xhCiMgdmV6LCBlbiBlbCBtaXNtbyBvcmRlbi4KIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCmRlZiBpZHNfdW5pY29zKGlkcyk6CiAgICAjIEVzY3JpYmUgdHUgc29sdWNpw7NuIGFxdcOtIHkgYm9ycmEgbGEgbMOtbmVhIGRlIGFiYWpvCiAgICByYWlzZSBOb3RJbXBsZW1lbnRlZEVycm9yCgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyBFamVyY2ljaW8gNDogTGEgc2VndW5kYSBww6FnaW5hIChTUUwpCiMgTGEgYXBwIG11ZXN0cmEgbG9zIHVzdWFyaW9zIGRlbCByZWdpc3RybyBtw6FzIHJlY2llbnRlIGFsIG3DoXMgYW50aWd1bywgMwojIHBvciBww6FnaW5hLiBTaSBkb3MgdXN1YXJpb3Mgc2UgcmVnaXN0cmFyb24gZWwgbWlzbW8gZMOtYSwgdmEgcHJpbWVybyBlbCBkZQojIGlkIG1lbm9yLiBNdWVzdHJhIGVsIGlkIHkgZWwgbm9tYnJlIGRlIGxvcyB1c3VhcmlvcyBkZSBsYSBww6FnaW5hIDIuCiMgVGFibGEgdXN1YXJpb3M6IGlkLCBub21icmUsIHJlZ2lzdHJvCiMgQ29sdW1uYXMgZGVsIHJlc3VsdGFkbzogaWQsIG5vbWJyZQojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KQ09OU1VMVEFfNCA9ICIiIgotLSBFc2NyaWJlIHR1IGNvbnN1bHRhIGFxdcOtCiIiIgoKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgRWplcmNpY2lvIDU6IERvcyByZWdpc3Ryb3MgZW4gdW5vIChQeXRob24pCiMgVGllbmVzIGRvcyBsaXN0YXMgZGUgaG9yYXMgZGUgZXZlbnRvcyAoIkhIOk1NIiwgc2llbXByZSBjb24gZG9zIGTDrWdpdG9zKSwKIyBjYWRhIHVuYSB5YSBvcmRlbmFkYSBkZSBsYSBtw6FzIHRlbXByYW5hIGEgbGEgbcOhcyB0YXJkw61hLiBFc2NyaWJlCiMgY29tYmluYXJfZXZlbnRvcyBwYXJhIHF1ZSBkZXZ1ZWx2YSB1bmEgc29sYSBsaXN0YSBvcmRlbmFkYSBjb24gdG9kYXMgbGFzCiMgaG9yYXMgZGUgbGFzIGRvcywgaW5jbHVpZGFzIGxhcyByZXBldGlkYXMuIEhhemxvIHJlY29ycmllbmRvIGxhcyBkb3MKIyBsaXN0YXMgYSBsYSB2ZXosIHNpbiB2b2x2ZXIgYSBvcmRlbmFyLgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KZGVmIGNvbWJpbmFyX2V2ZW50b3MoYSwgYik6CiAgICAjIEVzY3JpYmUgdHUgc29sdWNpw7NuIGFxdcOtIHkgYm9ycmEgbGEgbMOtbmVhIGRlIGFiYWpvCiAgICByYWlzZSBOb3RJbXBsZW1lbnRlZEVycm9yCgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyBFamVyY2ljaW8gNjogRWwgc2VndW5kbyBzdWVsZG8gKFNRTCkKIyBNdWVzdHJhIGVuIHVuYSBjb2x1bW5hIGxsYW1hZGEgc2VndW5kbyBlbCBzZWd1bmRvIHN1ZWxkbyBtw6FzIGFsdG8gZGUgbGEKIyB0YWJsYSwgY29udGFuZG8gbG9zIHN1ZWxkb3MgZGlzdGludG9zOiBzaSBlbCBtw6FzIGFsdG8gc2UgcmVwaXRlLCBlbAojIHNlZ3VuZG8gZXMgZWwgc2lndWllbnRlIHZhbG9yIHBvciBkZWJham8uIFNpIG5vIGhheSB1biBzZWd1bmRvIHN1ZWxkbwojIGRpc3RpbnRvLCBsYSBjb25zdWx0YSBkZWJlIGRldm9sdmVyIHVuYSBmaWxhIGNvbiBOVUxMLCBubyB1bmEgdGFibGEgdmFjw61hLgojIFRhYmxhIGVtcGxlYWRvczogaWQsIG5vbWJyZSwgc3VlbGRvCiMgQ29sdW1uYXMgZGVsIHJlc3VsdGFkbzogc2VndW5kbwojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KQ09OU1VMVEFfNiA9ICIiIgotLSBFc2NyaWJlIHR1IGNvbnN1bHRhIGFxdcOtCiIiIgoKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgTm8gaGFjZSBmYWx0YSBjYW1iaWFyIG5hZGEgZGViYWpvIGRlIGVzdGEgbMOtbmVhCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpUSVRVTE8gPSAiRW50cmVnYSA2OiBEb3MgcHVudGVyb3MgeSBvcmRlbiIKRUpFUkNJQ0lPUyA9IFsKICAgIHsibnVtZXJvIjogMSwgInRpdHVsbyI6ICJTZSBsZWUgaWd1YWwgYWwgcmV2w6lzIiwgInRpcG8iOiAicHl0aG9uIiwgImZ1bmNpb24iOiBlc19wYWxpbmRyb21vLCAiY2Fzb3MiOiBbCiAgICAgICAgKFsiQW5pdGEgbGF2YSBsYSB0aW5hIl0sIFRydWUpLAogICAgICAgIChbIkhvbGEiXSwgRmFsc2UpLAogICAgICAgIChbIlNhbCwgc29sIl0sIEZhbHNlKSwKICAgICAgICAoWyIiXSwgVHJ1ZSksCiAgICAgICAgKFsiwqFZbyBoYWdvIHlvZ2EgaG95ISJdLCBUcnVlKSwKICAgICAgICAoWyJhYiJdLCBGYWxzZSksCiAgICAgICAgKFsiLiw7Il0sIFRydWUpLAogICAgICAgIChbIkExYiwgQjFhIl0sIFRydWUpCiAgICBdfSwKICAgIHsibnVtZXJvIjogMiwgInRpdHVsbyI6ICJFbCBwb2RpbyBkZSB2ZW50YXMiLCAidGlwbyI6ICJzcWwiLCAiY29uc3VsdGEiOiBDT05TVUxUQV8yLCAiY29uX29yZGVuIjogVHJ1ZSwgImRhdG9zIjogWwogICAgICAgICgiQ1JFQVRFIFRBQkxFIHByb2R1Y3RvcyAobm9tYnJlLCB1bmlkYWRlcyk7IElOU0VSVCBJTlRPIHByb2R1Y3RvcyBWQUxVRVMgKCdDYWbDqScsIDQwKSwgKCdUw6knLCAyNSksICgnUGFuJywgNjApLCAoJ0FndWEnLCAyNSksICgnTGVjaGUnLCAxMCk7IiwgW1siUGFuIiwgNjBdLCBbIkNhZsOpIiwgNDBdLCBbIkFndWEiLCAyNV1dKSwKICAgICAgICAoIkNSRUFURSBUQUJMRSBwcm9kdWN0b3MgKG5vbWJyZSwgdW5pZGFkZXMpOyBJTlNFUlQgSU5UTyBwcm9kdWN0b3MgVkFMVUVTICgnU2FsJywgMiksICgnTWllbCcsIDUpLCAoJ0FqbycsIDEpLCAoJ0Fycm96JywgNSk7IiwgW1siQXJyb3oiLCA1XSwgWyJNaWVsIiwgNV0sIFsiU2FsIiwgMl1dKQogICAgXX0sCiAgICB7Im51bWVybyI6IDMsICJ0aXR1bG8iOiAiUmVnaXN0cm9zIHNpbiByZXBldGlyIiwgInRpcG8iOiAicHl0aG9uIiwgImZ1bmNpb24iOiBpZHNfdW5pY29zLCAiY2Fzb3MiOiBbCiAgICAgICAgKFtbMTAxLCAxMDEsIDEwMiwgMTA1LCAxMDUsIDEwNV1dLCBbMTAxLCAxMDIsIDEwNV0pLAogICAgICAgIChbWzMsIDQsIDVdXSwgWzMsIDQsIDVdKSwKICAgICAgICAoW1tdXSwgW10pLAogICAgICAgIChbWzddXSwgWzddKSwKICAgICAgICAoW1syLCAyLCAyXV0sIFsyXSksCiAgICAgICAgKFtbMSwgMiwgMiwgMywgMywgNF1dLCBbMSwgMiwgMywgNF0pCiAgICBdfSwKICAgIHsibnVtZXJvIjogNCwgInRpdHVsbyI6ICJMYSBzZWd1bmRhIHDDoWdpbmEiLCAidGlwbyI6ICJzcWwiLCAiY29uc3VsdGEiOiBDT05TVUxUQV80LCAiY29uX29yZGVuIjogVHJ1ZSwgImRhdG9zIjogWwogICAgICAgICgiQ1JFQVRFIFRBQkxFIHVzdWFyaW9zIChpZCwgbm9tYnJlLCByZWdpc3Rybyk7IElOU0VSVCBJTlRPIHVzdWFyaW9zIFZBTFVFUyAoMSwgJ0FuYScsICcyMDI2LTAxLTA1JyksICgyLCAnTHVpcycsICcyMDI2LTAzLTEwJyksICgzLCAnU29sJywgJzIwMjYtMDItMjAnKSwgKDQsICdSaXRhJywgJzIwMjYtMDUtMDEnKSwgKDUsICdUaXRvJywgJzIwMjYtMDQtMTUnKSwgKDYsICdFdmEnLCAnMjAyNi0wNi0zMCcpLCAoNywgJ0l2w6FuJywgJzIwMjYtMDEtMjUnKSwgKDgsICdVbWEnLCAnMjAyNi0wMy0zMCcpOyIsIFtbOCwgIlVtYSJdLCBbMiwgIkx1aXMiXSwgWzMsICJTb2wiXV0pLAogICAgICAgICgiQ1JFQVRFIFRBQkxFIHVzdWFyaW9zIChpZCwgbm9tYnJlLCByZWdpc3Rybyk7IElOU0VSVCBJTlRPIHVzdWFyaW9zIFZBTFVFUyAoMSwgJ05vcmEnLCAnMjAyNi0wMi0wMScpLCAoMiwgJ1Jhw7psJywgJzIwMjYtMDItMDEnKSwgKDMsICdQw61hJywgJzIwMjYtMDMtMDEnKSwgKDQsICdMZW8nLCAnMjAyNi0wMi0wMScpLCAoNSwgJ01hcicsICcyMDI2LTAxLTAxJyksICg2LCAnR2lsJywgJzIwMjYtMDMtMDEnKSwgKDcsICdab2UnLCAnMjAyNi0wMS0xNScpOyIsIFtbMiwgIlJhw7psIl0sIFs0LCAiTGVvIl0sIFs3LCAiWm9lIl1dKQogICAgXX0sCiAgICB7Im51bWVybyI6IDUsICJ0aXR1bG8iOiAiRG9zIHJlZ2lzdHJvcyBlbiB1bm8iLCAidGlwbyI6ICJweXRob24iLCAiZnVuY2lvbiI6IGNvbWJpbmFyX2V2ZW50b3MsICJjYXNvcyI6IFsKICAgICAgICAoW1siMDg6MDAiLCAiMDk6MzAiLCAiMTI6MTUiXSwgWyIwODo0NSIsICIwOTozMCJdXSwgWyIwODowMCIsICIwODo0NSIsICIwOTozMCIsICIwOTozMCIsICIxMjoxNSJdKSwKICAgICAgICAoW1siMTA6MDAiXSwgWyIwNzowMCIsICIxMTowMCIsICIxMzowMCJdXSwgWyIwNzowMCIsICIxMDowMCIsICIxMTowMCIsICIxMzowMCJdKSwKICAgICAgICAoW1tdLCBbIjAxOjAwIl1dLCBbIjAxOjAwIl0pLAogICAgICAgIChbWyIwNTowMCJdLCBbXV0sIFsiMDU6MDAiXSksCiAgICAgICAgKFtbIjA2OjAwIiwgIjA2OjAwIl0sIFsiMDY6MDAiXV0sIFsiMDY6MDAiLCAiMDY6MDAiLCAiMDY6MDAiXSksCiAgICAgICAgKFtbXSwgW11dLCBbXSkKICAgIF19LAogICAgeyJudW1lcm8iOiA2LCAidGl0dWxvIjogIkVsIHNlZ3VuZG8gc3VlbGRvIiwgInRpcG8iOiAic3FsIiwgImNvbnN1bHRhIjogQ09OU1VMVEFfNiwgImNvbl9vcmRlbiI6IFRydWUsICJkYXRvcyI6IFsKICAgICAgICAoIkNSRUFURSBUQUJMRSBlbXBsZWFkb3MgKGlkLCBub21icmUsIHN1ZWxkbyk7IElOU0VSVCBJTlRPIGVtcGxlYWRvcyBWQUxVRVMgKDEsICdBbmEnLCAzMDAwKSwgKDIsICdMdWlzJywgNDUwMCksICgzLCAnU29sJywgNDUwMCksICg0LCAnUml0YScsIDIwMDApOyIsIFtbMzAwMF1dKSwKICAgICAgICAoIkNSRUFURSBUQUJMRSBlbXBsZWFkb3MgKGlkLCBub21icmUsIHN1ZWxkbyk7IElOU0VSVCBJTlRPIGVtcGxlYWRvcyBWQUxVRVMgKDEsICdUaXRvJywgMjUwMCksICgyLCAnRXZhJywgMjUwMCk7IiwgW1tOb25lXV0pCiAgICBdfQpdCgppbXBvcnQgY29weQppbXBvcnQgc3FsaXRlMwppbXBvcnQgc3lzCgoKZGVmIF9pZ3VhbGVzKGEsIGIpOgogICAgaWYgaXNpbnN0YW5jZShhLCBmbG9hdCkgb3IgaXNpbnN0YW5jZShiLCBmbG9hdCk6CiAgICAgICAgdHJ5OgogICAgICAgICAgICByZXR1cm4gYWJzKGEgLSBiKSA8IDFlLTYKICAgICAgICBleGNlcHQgVHlwZUVycm9yOgogICAgICAgICAgICByZXR1cm4gRmFsc2UKICAgIGlmIGlzaW5zdGFuY2UoYSwgKGxpc3QsIHR1cGxlKSkgYW5kIGlzaW5zdGFuY2UoYiwgKGxpc3QsIHR1cGxlKSk6CiAgICAgICAgcmV0dXJuIGxlbihhKSA9PSBsZW4oYikgYW5kIGFsbChfaWd1YWxlcyh4LCB5KSBmb3IgeCwgeSBpbiB6aXAoYSwgYikpCiAgICBpZiBpc2luc3RhbmNlKGEsIGRpY3QpIGFuZCBpc2luc3RhbmNlKGIsIGRpY3QpOgogICAgICAgIHJldHVybiBhLmtleXMoKSA9PSBiLmtleXMoKSBhbmQgYWxsKF9pZ3VhbGVzKGFba10sIGJba10pIGZvciBrIGluIGEpCiAgICByZXR1cm4gYSA9PSBiCgoKZGVmIF9yZXZpc2FyX3B5dGhvbihlamVyY2ljaW8pOgogICAgbm9tYnJlID0gZWplcmNpY2lvWyJmdW5jaW9uIl0uX19uYW1lX18KICAgIGZvciBhcmdzLCBlc3BlcmFkbyBpbiBlamVyY2ljaW9bImNhc29zIl06CiAgICAgICAgbGxhbWFkYSA9IGYie25vbWJyZX0oeycsICcuam9pbihyZXByKGEpIGZvciBhIGluIGFyZ3MpfSkiCiAgICAgICAgdHJ5OgogICAgICAgICAgICBvYnRlbmlkbyA9IGVqZXJjaWNpb1siZnVuY2lvbiJdKCpjb3B5LmRlZXBjb3B5KGFyZ3MpKQogICAgICAgIGV4Y2VwdCBOb3RJbXBsZW1lbnRlZEVycm9yOgogICAgICAgICAgICByZXR1cm4gIlNJTiBFTVBFWkFSIiwgW10KICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGVycm9yOgogICAgICAgICAgICByZXR1cm4gIkZBTExBIiwgW2YiQ2Fzbzoge2xsYW1hZGF9IiwgZiJFcnJvcjoge3R5cGUoZXJyb3IpLl9fbmFtZV9ffToge2Vycm9yfSJdCiAgICAgICAgaWYgbm90IF9pZ3VhbGVzKG9idGVuaWRvLCBlc3BlcmFkbyk6CiAgICAgICAgICAgIHJldHVybiAiRkFMTEEiLCBbZiJDYXNvOiB7bGxhbWFkYX0iLCBmIkVzcGVyYWRvOiB7ZXNwZXJhZG8hcn0iLCBmIk9idGVuaWRvOiB7b2J0ZW5pZG8hcn0iXQogICAgcmV0dXJuICJQQVNBIiwgW10KCgpkZWYgX3JldmlzYXJfc3FsKGVqZXJjaWNpbyk6CiAgICBsaW5lYXMgPSBlamVyY2ljaW9bImNvbnN1bHRhIl0uc3BsaXRsaW5lcygpCiAgICBpZiBub3QgYW55KGwuc3RyaXAoKSBhbmQgbm90IGwuc3RyaXAoKS5zdGFydHN3aXRoKCItLSIpIGZvciBsIGluIGxpbmVhcyk6CiAgICAgICAgcmV0dXJuICJTSU4gRU1QRVpBUiIsIFtdCiAgICBmb3IgcHJlcGFyYWNpb24sIGVzcGVyYWRvIGluIGVqZXJjaWNpb1siZGF0b3MiXToKICAgICAgICBjb25leGlvbiA9IHNxbGl0ZTMuY29ubmVjdCgiOm1lbW9yeToiKQogICAgICAgIGNvbmV4aW9uLmV4ZWN1dGVzY3JpcHQocHJlcGFyYWNpb24pCiAgICAgICAgdHJ5OgogICAgICAgICAgICBvYnRlbmlkbyA9IGNvbmV4aW9uLmV4ZWN1dGUoZWplcmNpY2lvWyJjb25zdWx0YSJdKS5mZXRjaGFsbCgpCiAgICAgICAgZXhjZXB0IHNxbGl0ZTMuRXJyb3IgYXMgZXJyb3I6CiAgICAgICAgICAgIHJldHVybiAiRkFMTEEiLCBbZiJFcnJvciBlbiBsYSBjb25zdWx0YToge2Vycm9yfSJdCiAgICAgICAgZmluYWxseToKICAgICAgICAgICAgY29uZXhpb24uY29tbWl0KCkKICAgICAgICBjb25leGlvbi5jbG9zZSgpCiAgICAgICAgY29tcGFyYXIgPSAob2J0ZW5pZG8sIGVzcGVyYWRvKQogICAgICAgIGlmIG5vdCBlamVyY2ljaW9bImNvbl9vcmRlbiJdOgogICAgICAgICAgICBjb21wYXJhciA9IChzb3J0ZWQob2J0ZW5pZG8sIGtleT1yZXByKSwgc29ydGVkKCh0dXBsZShmKSBmb3IgZiBpbiBlc3BlcmFkbyksIGtleT1yZXByKSkKICAgICAgICBpZiBub3QgX2lndWFsZXMoKmNvbXBhcmFyKToKICAgICAgICAgICAgcmV0dXJuICJGQUxMQSIsIFsKICAgICAgICAgICAgICAgIGYiRXNwZXJhZG86IHtbdHVwbGUoZikgZm9yIGYgaW4gZXNwZXJhZG9dfSIsCiAgICAgICAgICAgICAgICBmIk9idGVuaWRvOiB7b2J0ZW5pZG99IgogICAgICAgICAgICBdCiAgICByZXR1cm4gIlBBU0EiLCBbXQoKCmRlZiBtYWluKCk6CiAgICBzeXMuc3Rkb3V0LnJlY29uZmlndXJlKGVuY29kaW5nPSJ1dGYtOCIpCiAgICBwcmludChUSVRVTE8pCiAgICBwcmludCgpCiAgICBjb3JyZWN0b3MgPSAwCiAgICBmb3IgZWplcmNpY2lvIGluIEVKRVJDSUNJT1M6CiAgICAgICAgcmV2aXNhciA9IF9yZXZpc2FyX3B5dGhvbiBpZiBlamVyY2ljaW9bInRpcG8iXSA9PSAicHl0aG9uIiBlbHNlIF9yZXZpc2FyX3NxbAogICAgICAgIGVzdGFkbywgZGV0YWxsZXMgPSByZXZpc2FyKGVqZXJjaWNpbykKICAgICAgICBwcmludChmIntlamVyY2ljaW9bJ251bWVybyddfS4ge2VqZXJjaWNpb1sndGl0dWxvJ119OiB7ZXN0YWRvfSIpCiAgICAgICAgZm9yIGRldGFsbGUgaW4gZGV0YWxsZXM6CiAgICAgICAgICAgIHByaW50KGYiICAge2RldGFsbGV9IikKICAgICAgICBpZiBlc3RhZG8gPT0gIlBBU0EiOgogICAgICAgICAgICBjb3JyZWN0b3MgKz0gMQogICAgcHJpbnQoKQogICAgcHJpbnQoZiJSZXN1bHRhZG86IHtjb3JyZWN0b3N9IGRlIHtsZW4oRUpFUkNJQ0lPUyl9IGVqZXJjaWNpb3MgY29ycmVjdG9zLiIpCiAgICByZXR1cm4gMCBpZiBjb3JyZWN0b3MgPT0gbGVuKEVKRVJDSUNJT1MpIGVsc2UgMQoKCmlmIF9fbmFtZV9fID09ICJfX21haW5fXyI6CiAgICBzeXMuZXhpdChtYWluKCkpCg==" download="entrega_06.py">Descargar entrega_06.py</a>
+  </section>
+  <article class="ejercicio" id="ejercicio-1" data-ejercicio="1">
+      <div class="encabezado"><span class="lenguaje">Python</span><h2>1. Se lee igual al revés</h2></div>
+      <p class="enunciado">Escribe <code>es_palindromo</code> para que devuelva <code>True</code> si <code>texto</code> se lee igual de izquierda a derecha que de derecha a izquierda, teniendo en cuenta solo letras y dígitos y sin distinguir mayúsculas de minúsculas. Espacios, comas, signos de exclamación y demás se ignoran. Los textos de prueba no llevan tildes.</p>
+      <ul class="ejemplos"><li><code>es_palindromo(&quot;Anita lava la tina&quot;)</code> devuelve <code>True</code></li><li><code>es_palindromo(&quot;Hola&quot;)</code> devuelve <code>False</code></li><li><code>es_palindromo(&quot;Sal, sol&quot;)</code> devuelve <code>False</code></li></ul>
+      <ol class="pistas" aria-live="polite"><li hidden>Pon un índice al principio y otro al final del texto, y acércalos hacia el centro.</li><li hidden>Si el carácter de un lado no es letra ni dígito, avanza solo ese índice y vuelve a mirar. Los textos traen una forma directa de hacer justo esa pregunta.</li><li hidden>Compara los dos caracteres ya pasados a minúscula: a la primera diferencia ya sabes la respuesta, y si los índices se cruzan sin encontrar ninguna, es palíndromo.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>def es_palindromo(texto):
+    i, j = 0, len(texto) - 1
+    while i &lt; j:
+        if not texto[i].isalnum():
+            i += 1
+        elif not texto[j].isalnum():
+            j -= 1
+        elif texto[i].lower() != texto[j].lower():
+            return False
+        else:
+            i += 1
+            j -= 1
+    return True</code></pre>
+        <p>Los dos índices avanzan hacia el centro y cada carácter se mira una sola vez, sin crear copias del texto. Quitar a mano espacios y comas parece suficiente con los ejemplos, pero en cuanto aparece un signo que no tenías previsto, como <code>¡</code> o <code>!</code>, el texto ya no es simétrico; <code>isalnum</code> decide carácter por carácter sin tener que listar todos los signos. También vale limpiar primero y comparar con <code>[::-1]</code>, siempre que filtres con <code>isalnum</code>.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-2" data-ejercicio="2">
+      <div class="encabezado"><span class="lenguaje">SQL</span><h2>2. El podio de ventas</h2></div>
+      <p class="enunciado">Muestra el nombre y las unidades de los 3 productos más vendidos, de más a menos unidades. Si dos productos empatan en unidades, va primero el de nombre alfabéticamente menor.</p>
+      <figure class="datos">
+        <figcaption>Tabla productos</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>nombre</th><th>unidades</th></tr></thead>
+          <tbody><tr><td>Café</td><td>40</td></tr><tr><td>Té</td><td>25</td></tr><tr><td>Pan</td><td>60</td></tr><tr><td>Agua</td><td>25</td></tr><tr><td>Leche</td><td>10</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Resultado esperado</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>nombre</th><th>unidades</th></tr></thead>
+          <tbody><tr><td>Pan</td><td>60</td></tr><tr><td>Café</td><td>40</td></tr><tr><td>Agua</td><td>25</td></tr></tbody>
+        </table></div>
+      </figure>
+      <ol class="pistas" aria-live="polite"><li hidden>Primero ordena toda la tabla y después quédate con las primeras filas: en SQL esas dos cosas van en cláusulas distintas.</li><li hidden>Por defecto el orden es de menor a mayor; para los más vendidos necesitas el contrario.</li><li hidden><code>ORDER BY</code> admite varias columnas separadas por comas, y la primera manda: la segunda solo decide entre filas empatadas en la primera.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>SELECT nombre, unidades
+FROM productos
+ORDER BY unidades DESC, nombre
+LIMIT 3;</code></pre>
+        <p>El <code>LIMIT</code> se aplica después de ordenar, así que primero se decide el orden completo y luego se cortan 3 filas. El orden de las columnas en <code>ORDER BY</code> importa: poner <code>nombre</code> delante ordena alfabéticamente y las unidades ya casi no cuentan. Sin el desempate por nombre, qué producto entra en un empate dependería del motor. <code>LIMIT</code> vale en SQLite, PostgreSQL y MySQL; SQL Server usa <code>TOP</code> u <code>OFFSET ... FETCH</code>.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-3" data-ejercicio="3">
+      <div class="encabezado"><span class="lenguaje">Python</span><h2>3. Registros sin repetir</h2></div>
+      <p class="enunciado">Un sistema guarda los ids de los registros procesados en una lista ordenada de menor a mayor, pero algunos se procesaron varias veces. Escribe <code>ids_unicos</code> para que devuelva una lista nueva con cada id una sola vez, en el mismo orden.</p>
+      <ul class="ejemplos"><li><code>ids_unicos([101, 101, 102, 105, 105, 105])</code> devuelve <code>[101, 102, 105]</code></li><li><code>ids_unicos([3, 4, 5])</code> devuelve <code>[3, 4, 5]</code></li></ul>
+      <ol class="pistas" aria-live="polite"><li hidden>Como la lista está ordenada, los repetidos siempre quedan juntos, uno detrás de otro.</li><li hidden>Basta con comparar cada id con el último que ya guardaste en el resultado, no con todos.</li><li hidden>Ojo con el primer id (aún no hay ningún “último guardado”) y con el último de la lista: los dos tienen que entrar.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>def ids_unicos(ids):
+    unicos = []
+    for x in ids:
+        if not unicos or unicos[-1] != x:
+            unicos.append(x)
+    return unicos</code></pre>
+        <p>Un puntero recorre la lista y el otro es el final del resultado: como lo repetido está junto, basta comparar con lo último guardado. Comparar cada elemento con el siguiente también es una idea correcta, pero el bucle hasta <code>len(ids) - 1</code> se olvida del último id y falla con listas de un solo elemento. <code>sorted(set(ids))</code> daría lo mismo aquí, pero solo porque la lista ya venía ordenada.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-4" data-ejercicio="4">
+      <div class="encabezado"><span class="lenguaje">SQL</span><h2>4. La segunda página</h2></div>
+      <p class="enunciado">La app muestra los usuarios del registro más reciente al más antiguo, 3 por página. Si dos usuarios se registraron el mismo día, va primero el de <code>id</code> menor. Muestra el <code>id</code> y el <code>nombre</code> de los usuarios de la página 2.</p>
+      <figure class="datos">
+        <figcaption>Tabla usuarios</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>id</th><th>nombre</th><th>registro</th></tr></thead>
+          <tbody><tr><td>1</td><td>Ana</td><td>2026-01-05</td></tr><tr><td>2</td><td>Luis</td><td>2026-03-10</td></tr><tr><td>3</td><td>Sol</td><td>2026-02-20</td></tr><tr><td>4</td><td>Rita</td><td>2026-05-01</td></tr><tr><td>5</td><td>Tito</td><td>2026-04-15</td></tr><tr><td>6</td><td>Eva</td><td>2026-06-30</td></tr><tr><td>7</td><td>Iván</td><td>2026-01-25</td></tr><tr><td>8</td><td>Uma</td><td>2026-03-30</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Resultado esperado</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>id</th><th>nombre</th></tr></thead>
+          <tbody><tr><td>8</td><td>Uma</td></tr><tr><td>2</td><td>Luis</td></tr><tr><td>3</td><td>Sol</td></tr></tbody>
+        </table></div>
+      </figure>
+      <ol class="pistas" aria-live="polite"><li hidden>Las fechas están guardadas como texto con el formato año-mes-día, así que ordenarlas como texto las deja en orden cronológico.</li><li hidden>Necesitas dos criterios de orden: la fecha, de la más nueva a la más vieja, y el <code>id</code> para los empates.</li><li hidden>Para llegar a la página 2 tienes que saltarte la página 1 entera. ¿Cuántas filas son? Generalizando, la página n se salta (n - 1) por el tamaño de página.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>SELECT id, nombre
+FROM usuarios
+ORDER BY registro DESC, id
+LIMIT 3 OFFSET 3;</code></pre>
+        <p><code>OFFSET</code> dice cuántas filas saltar, no qué página mostrar: la página 2 empieza después de las 3 primeras, por eso es <code>OFFSET 3</code>, y multiplicar la página por el tamaño se salta una de más. El desempate por <code>id</code> es lo que hace que la paginación sea estable: sin él, un usuario podría salir en dos páginas o en ninguna cuando hay fechas repetidas. Ordenar fechas como texto solo funciona con el formato <code>AAAA-MM-DD</code>; en otros motores lo normal es usar un tipo de fecha.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-5" data-ejercicio="5">
+      <div class="encabezado"><span class="lenguaje">Python</span><h2>5. Dos registros en uno</h2></div>
+      <p class="enunciado">Tienes dos listas de horas de eventos (<code>&quot;HH:MM&quot;</code>, siempre con dos dígitos), cada una ya ordenada de la más temprana a la más tardía. Escribe <code>combinar_eventos</code> para que devuelva una sola lista ordenada con todas las horas de las dos, incluidas las repetidas. Hazlo recorriendo las dos listas a la vez, sin volver a ordenar.</p>
+      <ul class="ejemplos"><li><code>combinar_eventos([&quot;08:00&quot;, &quot;09:30&quot;, &quot;12:15&quot;], [&quot;08:45&quot;, &quot;09:30&quot;])</code> devuelve <code>[&quot;08:00&quot;, &quot;08:45&quot;, &quot;09:30&quot;, &quot;09:30&quot;, &quot;12:15&quot;]</code></li><li><code>combinar_eventos([&quot;10:00&quot;], [&quot;07:00&quot;, &quot;11:00&quot;, &quot;13:00&quot;])</code> devuelve <code>[&quot;07:00&quot;, &quot;10:00&quot;, &quot;11:00&quot;, &quot;13:00&quot;]</code></li></ul>
+      <ol class="pistas" aria-live="polite"><li hidden>Lleva un índice en cada lista. En cada paso, el siguiente elemento del resultado es el menor de los dos que señalan.</li><li hidden>Con dos dígitos fijos, las horas en texto se comparan bien con <code>&lt;</code>, igual que si fueran números.</li><li hidden>El bucle termina cuando una de las listas se acaba, pero a la otra todavía le pueden quedar elementos. ¿Qué haces con ellos?</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>def combinar_eventos(a, b):
+    i, j = 0, 0
+    resultado = []
+    while i &lt; len(a) and j &lt; len(b):
+        if a[i] &lt;= b[j]:
+            resultado.append(a[i])
+            i += 1
+        else:
+            resultado.append(b[j])
+            j += 1
+    resultado.extend(a[i:])
+    resultado.extend(b[j:])
+    return resultado</code></pre>
+        <p>Cada paso mete un elemento y avanza un solo índice, así que se hacen tantas vueltas como elementos haya en total, sin reordenar nada. El fallo típico es acordarse de lo que sobra en una lista y no en la otra: con el primer ejemplo pasa desapercibido porque la lista que queda con elementos es <code>a</code>. Añadir los dos restos no cuesta nada, porque uno de ellos siempre está vacío. <code>sorted(a + b)</code> también acierta, pero no aprovecha que las listas ya venían ordenadas.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-6" data-ejercicio="6">
+      <div class="encabezado"><span class="lenguaje">SQL</span><h2>6. El segundo sueldo</h2></div>
+      <p class="enunciado">Muestra en una columna llamada <code>segundo</code> el segundo sueldo más alto de la tabla, contando los sueldos distintos: si el más alto se repite, el segundo es el siguiente valor por debajo. Si no hay un segundo sueldo distinto, la consulta debe devolver una fila con NULL, no una tabla vacía.</p>
+      <figure class="datos">
+        <figcaption>Tabla empleados</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>id</th><th>nombre</th><th>sueldo</th></tr></thead>
+          <tbody><tr><td>1</td><td>Ana</td><td>3000</td></tr><tr><td>2</td><td>Luis</td><td>4500</td></tr><tr><td>3</td><td>Sol</td><td>4500</td></tr><tr><td>4</td><td>Rita</td><td>2000</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Resultado esperado</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>segundo</th></tr></thead>
+          <tbody><tr><td>3000</td></tr></tbody>
+        </table></div>
+      </figure>
+      <ol class="pistas" aria-live="polite"><li hidden>Si ordenas los sueldos de mayor a menor, el segundo está en la segunda fila; pero antes asegúrate de que cada valor aparezca una sola vez.</li><li hidden>Para quedarte con la segunda fila tienes que saltarte una y tomar una.</li><li hidden>Cuando no hay segunda fila, una consulta normal devuelve cero filas. Pero si esa consulta va como subconsulta dentro de un <code>SELECT</code> exterior, su valor pasa a ser NULL.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>SELECT (
+    SELECT DISTINCT sueldo
+    FROM empleados
+    ORDER BY sueldo DESC
+    LIMIT 1 OFFSET 1
+) AS segundo;</code></pre>
+        <p><code>DISTINCT</code> deja un solo 4500, así que el segundo es 3000 y no el 4500 repetido. La consulta interior, cuando no encuentra fila, devuelve nada; envuelta en un <code>SELECT</code> exterior como subconsulta escalar, ese vacío se convierte en NULL, que es lo que pide el enunciado. La versión sin envolver acierta el primer caso y deja una tabla vacía en el segundo. Una alternativa que vale en cualquier motor es <code>SELECT MAX(sueldo) ... WHERE sueldo &lt; (SELECT MAX(sueldo) FROM empleados)</code>.</p>
+      </details>
+    </article>
+</main>
+<script>
+const CLAVE_ENTREGA = "retos-python-sql:dos-punteros:hechos";
+const ejercicios = [...document.querySelectorAll('.ejercicio')];
+
+function leerHechos() {
+  try {
+    return JSON.parse(localStorage.getItem(CLAVE_ENTREGA)) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function guardarHechos(hechos) {
+  try {
+    localStorage.setItem(CLAVE_ENTREGA, JSON.stringify(hechos));
+  } catch (e) { /* sin almacenamiento: el contador dura hasta recargar */ }
+}
+
+function pintarAvance() {
+  const marcados = ejercicios.filter((e) => e.querySelector('.marcar').checked);
+  document.getElementById('hechos').textContent = String(marcados.length);
+  [...document.getElementById('progreso').children].forEach((caja, i) => {
+    caja.classList.toggle('hecho', i < marcados.length);
+  });
+  guardarHechos(marcados.map((e) => e.dataset.ejercicio));
+}
+
+const iniciales = leerHechos();
+ejercicios.forEach((ejercicio) => {
+  const marcar = ejercicio.querySelector('.marcar');
+  marcar.checked = iniciales.includes(ejercicio.dataset.ejercicio);
+  marcar.addEventListener('change', pintarAvance);
+
+  const boton = ejercicio.querySelector('.ver-pista');
+  const pistas = [...ejercicio.querySelectorAll('.pistas li')];
+  boton.addEventListener('click', () => {
+    const siguiente = pistas.findIndex((p) => p.hidden);
+    pistas[siguiente].hidden = false;
+    if (siguiente + 1 < pistas.length) {
+      boton.textContent = `Ver pista ${siguiente + 2} de ${pistas.length}`;
+    } else {
+      boton.textContent = 'No hay más pistas';
+      boton.disabled = true;
+    }
+  });
+});
+pintarAvance();
+</script>
+</body>
+</html>
