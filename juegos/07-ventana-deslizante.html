@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La ventana: ventana deslizante | Retos de Python y SQL</title>
+<meta name="description" content="Ejercicios de Python y SQL sobre la ventana deslizante: media móvil, mayor suma de k elementos seguidos, rachas dentro de un presupuesto y funciones de ventana con ROW_NUMBER, SUM OVER y LAG, con pistas y solución.">
+<link rel="icon" href="data:,">
+<style>
+:root {
+  color-scheme: light;
+  --papel: #E8EEF6;
+  --tinta: #14264F;
+  --casillero: #1F46A8;
+  --hueco: #0F2A6B;
+  --nota: #FFD23F;
+  --blanco: #FFFFFF;
+  --exito: #0B6E4F;
+  --pista: #A01D45;
+  --titulo: Rockwell, "Roboto Slab", "Sitka Text", Georgia, serif;
+  --texto: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --codigo: "Cascadia Code", Consolas, ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 60px; }
+body { margin: 0; background: var(--papel); color: var(--tinta); font: 1.0625rem/1.55 var(--texto); }
+a { color: inherit; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--pista); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.ancho { width: min(100% - 32px, 860px); margin-inline: auto; }
+
+.banner { background: var(--casillero); color: var(--blanco); padding: 1rem 0 1.5rem; }
+.banner a { font-size: .95rem; }
+.banner h1 { margin: .4rem 0 0; font: 700 clamp(2.5rem, 9vw, 4.25rem)/1.02 var(--titulo); color: var(--nota); }
+.banner p { margin: .25rem 0 0; font-size: 1.05rem; }
+
+.marcador { position: sticky; top: 0; z-index: 2; background: var(--tinta); color: var(--blanco); padding: .5rem 0; }
+.marcador .ancho { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+#progreso { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+#progreso li { width: 18px; height: 18px; background: var(--hueco); border: 2px solid #5D7CC9; border-radius: 2px; }
+#progreso li.hecho { background: var(--nota); border-color: var(--nota); }
+.cuenta { white-space: nowrap; }
+#hechos { font: 700 1.5rem/1 var(--titulo); color: var(--nota); }
+
+.explicacion { max-width: 72ch; margin-block: 1.5rem; font-size: 1.125rem; }
+code { font-family: var(--codigo); font-size: .92em; background: var(--blanco); padding: .05em .3em; border-radius: 3px; overflow-wrap: anywhere; }
+
+h2 { margin: 0; font: 700 1.5rem/1.2 var(--titulo); }
+.como { margin-bottom: 2rem; padding: 1rem 1.1rem 1.2rem; background: var(--blanco); border: 2px solid var(--tinta); border-radius: 4px; }
+.como ol { margin: .6rem 0 1rem; padding-left: 1.4rem; }
+.como li + li { margin-top: .2rem; }
+.como code { background: var(--papel); }
+
+.ejercicio { padding-block: 1.5rem; border-top: 2px solid #AEBBD3; }
+.encabezado { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.lenguaje { padding: .05rem .5rem; background: var(--nota); border: 2px solid var(--tinta); border-radius: 3px; font-weight: 700; font-size: .9rem; }
+.enunciado { margin: .5rem 0 .9rem; max-width: 72ch; }
+
+.datos { margin: 0 0 1rem; }
+figcaption { margin-bottom: .3rem; font-weight: 600; font-size: .95rem; }
+.desplazable { overflow-x: auto; border: 2px solid var(--tinta); border-radius: 4px; background: var(--blanco); }
+table { width: 100%; border-collapse: collapse; font: .92rem/1.35 var(--codigo); }
+th, td { padding: .3rem .55rem; text-align: left; white-space: nowrap; border-bottom: 1px solid #D5DDEB; }
+th { background: var(--casillero); color: var(--blanco); font-weight: 600; }
+tbody tr:last-child td { border-bottom: 0; }
+td.nulo { color: var(--pista); font-style: italic; }
+
+.ejemplos { margin: 0 0 1rem; padding: .6rem .75rem; list-style: none; background: var(--blanco); border: 2px solid var(--tinta); border-radius: 4px; }
+.ejemplos li + li { margin-top: .35rem; }
+.ejemplos code { background: var(--papel); }
+
+.pistas { margin: 0 0 .75rem; padding: 0; list-style: none; }
+.pistas li { max-width: 72ch; padding: .5rem .8rem; background: #FFF6CC; border-left: 6px solid var(--nota); }
+.pistas li + li { margin-top: 4px; }
+.pistas code { background: var(--blanco); }
+
+.mandos { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.25rem; margin-bottom: .9rem; }
+.boton {
+  min-height: 46px; padding: .45rem 1.05rem; display: inline-flex; align-items: center;
+  background: var(--nota); color: var(--tinta); text-decoration: none; font-weight: 700; cursor: pointer;
+  border: 2px solid var(--tinta); border-radius: 4px; box-shadow: 0 3px 0 var(--tinta);
+  overflow-wrap: anywhere;
+}
+.boton:hover:not(:disabled) { background: #FFE27A; }
+.boton:active:not(:disabled) { transform: translateY(3px); box-shadow: none; }
+.boton.sobrio { background: var(--blanco); }
+.boton:disabled { opacity: .55; box-shadow: none; cursor: default; }
+.hecho { display: inline-flex; align-items: center; gap: .45rem; min-height: 44px; cursor: pointer; font-weight: 600; }
+.hecho input { width: 22px; height: 22px; accent-color: var(--exito); }
+
+.solucion summary {
+  width: fit-content; min-height: 44px; display: flex; align-items: center; cursor: pointer;
+  font-weight: 700; text-decoration: underline;
+}
+.solucion pre { margin: .3rem 0 .6rem; padding: .7rem .8rem; background: var(--hueco); color: #F2F6FF; border-radius: 4px; overflow-x: auto; }
+.solucion pre code { background: transparent; padding: 0; color: inherit; font-size: .95rem; line-height: 1.5; overflow-wrap: normal; }
+.solucion p { margin: 0; max-width: 72ch; }
+</style>
+</head>
+<body>
+<header class="banner">
+  <div class="ancho">
+    <a href="../index.html">Todas las entregas</a>
+    <h1>La ventana</h1>
+    <p>Entrega 7: ventana deslizante</p>
+  </div>
+</header>
+<div class="marcador">
+  <div class="ancho">
+    <ol id="progreso" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li></ol>
+    <div class="cuenta"><span id="hechos">0</span> de 6 resueltos</div>
+  </div>
+</div>
+<main class="ancho">
+  <p class="explicacion">Una ventana deslizante es un tramo de elementos seguidos que se mueve por la lista: al avanzar un paso entra un elemento por un lado y sale otro por el otro, así que puedes actualizar la suma sin volver a recorrer el tramo entero. Unas veces la ventana tiene un tamaño fijo y otras crece y encoge según una condición, como no pasarse de un presupuesto. En SQL la misma idea son las funciones de ventana, como <code>ROW_NUMBER</code>, <code>SUM(...) OVER</code> o <code>LAG</code>, que calculan algo para cada fila mirando las filas de su alrededor sin agruparlas en una sola (SQLite las admite desde la versión 3.25, que ya trae cualquier Python reciente).</p>
+  <section class="como">
+    <h2>Cómo practicar</h2>
+    <ol>
+      <li>Descarga el archivo y ábrelo en tu editor.</li>
+      <li>Completa las funciones y las consultas.</li>
+      <li>Ejecuta <code>python entrega_07.py</code> para ver qué casos pasan. Solo necesitas Python: SQLite viene incluido.</li>
+      <li>Si te atascas, pide una pista. Al terminar, compara con la solución.</li>
+    </ol>
+    <a class="boton" id="descargar" href="data:text/x-python;base64,IyBFbnRyZWdhIDc6IFZlbnRhbmEgZGVzbGl6YW50ZQojIENvbXBsZXRhIGxhcyBmdW5jaW9uZXMgeSBsYXMgY29uc3VsdGFzLCB5IGVqZWN1dGEgZXN0ZSBhcmNoaXZvOgojICAgICBweXRob24gZW50cmVnYV8wNy5weQojIFNvbG8gbmVjZXNpdGFzIFB5dGhvbjogU1FMaXRlIHZpZW5lIGluY2x1aWRvLgoKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgRWplcmNpY2lvIDE6IExhIG1lZGlhIGRlIHRyZXMgZMOtYXMgKFB5dGhvbikKIyBFc2NyaWJlIG1lZGlhX21vdmlsIHBhcmEgcXVlIGRldnVlbHZhIHVuYSBsaXN0YSBjb24gbGEgbWVkaWEgZGUgY2FkYSB0cmFtbwojIGRlIGsgdmFsb3JlcyBzZWd1aWRvcyBkZSB2YWxvcmVzLCByZWRvbmRlYWRhIGEgMSBkZWNpbWFsIGNvbiByb3VuZC4gRWwKIyBwcmltZXIgdHJhbW8gdmEgZGUgbGEgcG9zaWNpw7NuIDAgYSBsYSBrIC0gMSwgZWwgc2VndW5kbyBlbXBpZXphIGVuIGxhIDEsIHkKIyBhc8OtIGhhc3RhIGVsIMO6bHRpbW8gdHJhbW8gY29tcGxldG8uIFNpIG5vIGhheSBuaW5nw7puIHRyYW1vIGNvbXBsZXRvLAojIGRldnVlbHZlIHVuYSBsaXN0YSB2YWPDrWEuIGsgc2llbXByZSBlcyBtYXlvciBxdWUgMC4KIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCmRlZiBtZWRpYV9tb3ZpbCh2YWxvcmVzLCBrKToKICAgICMgRXNjcmliZSB0dSBzb2x1Y2nDs24gYXF1w60geSBib3JyYSBsYSBsw61uZWEgZGUgYWJham8KICAgIHJhaXNlIE5vdEltcGxlbWVudGVkRXJyb3IKCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQojIEVqZXJjaWNpbyAyOiBFbCBhY3VtdWxhZG8gZGUgY2FkYSB0aWVuZGEgKFNRTCkKIyBDYWRhIGZpbGEgZGUgdmVudGFzIGVzIGxvIHF1ZSB2ZW5kacOzIHVuYSB0aWVuZGEgZW4gdW4gZMOtYSwgeSBubyBoYXkgZG9zCiMgZmlsYXMgZGUgbGEgbWlzbWEgdGllbmRhIGNvbiBsYSBtaXNtYSBmZWNoYS4gTXVlc3RyYSB0aWVuZGEsIGZlY2hhIHkgdW5hCiMgY29sdW1uYSBhY3VtdWxhZG8gY29uIGVsIHRvdGFsIHZlbmRpZG8gcG9yIGVzYSB0aWVuZGEgZGVzZGUgc3UgcHJpbWVyIGTDrWEKIyBoYXN0YSBlc2EgZmVjaGEsIGluY2x1aWRhLiBPcmRlbmEgcG9yIHRpZW5kYSB5LCBkZW50cm8gZGUgY2FkYSB0aWVuZGEsIHBvcgojIGZlY2hhLgojIFRhYmxhIHZlbnRhczogdGllbmRhLCBmZWNoYSwgaW1wb3J0ZQojIENvbHVtbmFzIGRlbCByZXN1bHRhZG86IHRpZW5kYSwgZmVjaGEsIGFjdW11bGFkbwojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KQ09OU1VMVEFfMiA9ICIiIgotLSBFc2NyaWJlIHR1IGNvbnN1bHRhIGFxdcOtCiIiIgoKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgRWplcmNpY2lvIDM6IExhIG1lam9yIHNlbWFuYSBjb3J0YSAoUHl0aG9uKQojIFRpZW5lcyBsYXMgdmVudGFzIGRlIGNhZGEgZMOtYSBlbiB1bmEgbGlzdGEuIEVzY3JpYmUgbWF5b3Jfc3VtYSBwYXJhIHF1ZQojIGRldnVlbHZhIGxhIG1heW9yIHN1bWEgZGUgayBkw61hcyBzZWd1aWRvcy4gTGFzIHZlbnRhcyBwdWVkZW4gc2VyCiMgbmVnYXRpdmFzLCBwb3JxdWUgY3VlbnRhbiBsYXMgZGV2b2x1Y2lvbmVzLiBTaSBoYXkgbWVub3MgZGUgayBkw61hcywKIyBkZXZ1ZWx2ZSBOb25lLiBrIHNpZW1wcmUgZXMgbWF5b3IgcXVlIDAuCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpkZWYgbWF5b3Jfc3VtYSh2ZW50YXMsIGspOgogICAgIyBFc2NyaWJlIHR1IHNvbHVjacOzbiBhcXXDrSB5IGJvcnJhIGxhIGzDrW5lYSBkZSBhYmFqbwogICAgcmFpc2UgTm90SW1wbGVtZW50ZWRFcnJvcgoKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgRWplcmNpY2lvIDQ6IEVsIHByaW1lciBwZWRpZG8gKFNRTCkKIyBNdWVzdHJhIGVsIHByaW1lciBwZWRpZG8gZGUgY2FkYSBjbGllbnRlOiBjbGllbnRlLCBmZWNoYSBlIGltcG9ydGUsCiMgb3JkZW5hZG8gcG9yIGNsaWVudGUuIFNpIHVuIGNsaWVudGUgaGl6byBkb3MgcGVkaWRvcyBlbCBtaXNtbyBkw61hLCBjdWVudGEKIyBjb21vIHByaW1lcm8gZWwgZGUgaWQgbWVub3IsIHkgY2FkYSBjbGllbnRlIGRlYmUgc2FsaXIgdW5hIHNvbGEgdmV6LgojIFRhYmxhIHBlZGlkb3M6IGlkLCBjbGllbnRlLCBmZWNoYSwgaW1wb3J0ZQojIENvbHVtbmFzIGRlbCByZXN1bHRhZG86IGNsaWVudGUsIGZlY2hhLCBpbXBvcnRlCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpDT05TVUxUQV80ID0gIiIiCi0tIEVzY3JpYmUgdHUgY29uc3VsdGEgYXF1w60KIiIiCgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyBFamVyY2ljaW8gNTogTG9zIGTDrWFzIGRlbnRybyBkZWwgcHJlc3VwdWVzdG8gKFB5dGhvbikKIyBUaWVuZXMgbG8gcXVlIGdhc3Rhc3RlIGNhZGEgZMOtYSAobsO6bWVyb3MgZW50ZXJvcywgbnVuY2EgbmVnYXRpdm9zKSB5IHVuCiMgcHJlc3VwdWVzdG8uIEVzY3JpYmUgcmFjaGFfZW5fcHJlc3VwdWVzdG8gcGFyYSBxdWUgZGV2dWVsdmEgY3XDoW50b3MgZMOtYXMKIyBzZWd1aWRvcywgY29tbyBtw6F4aW1vLCBwdWVkZXMganVudGFyIHNpbiBxdWUgc3UgZ2FzdG8gdG90YWwgcGFzZSBkZWwKIyBwcmVzdXB1ZXN0by4gR2FzdGFyIGV4YWN0YW1lbnRlIGVsIHByZXN1cHVlc3RvIGVzdMOhIHBlcm1pdGlkby4gU2kgbmluZ8O6bgojIGTDrWEgY2FiZSBwb3Igc8OtIHNvbG8sIGRldnVlbHZlIDAuCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpkZWYgcmFjaGFfZW5fcHJlc3VwdWVzdG8oZ2FzdG9zLCBwcmVzdXB1ZXN0byk6CiAgICAjIEVzY3JpYmUgdHUgc29sdWNpw7NuIGFxdcOtIHkgYm9ycmEgbGEgbMOtbmVhIGRlIGFiYWpvCiAgICByYWlzZSBOb3RJbXBsZW1lbnRlZEVycm9yCgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyBFamVyY2ljaW8gNjogTGFzIHN1YmlkYXMgZGUgcHJlY2lvIChTUUwpCiMgTGEgdGFibGEgcHJlY2lvcyBndWFyZGEgZWwgcHJlY2lvIGRlIHVuIHByb2R1Y3RvIGVuIGxhcyBmZWNoYXMgZW4gcXVlIHNlCiMgcmV2aXPDsywgcXVlIG5vIHNpZW1wcmUgc29uIGTDrWFzIHNlZ3VpZG9zLiBNdWVzdHJhIGxhIGZlY2hhIHkgbGEgc3ViaWRhCiMgKHByZWNpbyBkZSBlc2EgZmVjaGEgbWVub3MgZWwgZGUgbGEgcmV2aXNpw7NuIGFudGVyaW9yKSBkZSBsYXMgcmV2aXNpb25lcwojIGVuIHF1ZSBlbCBwcmVjaW8gc3ViacOzIHJlc3BlY3RvIGEgbGEgYW50ZXJpb3IsIG9yZGVuYWRhcyBwb3IgZmVjaGEuIExhCiMgcHJpbWVyYSByZXZpc2nDs24gbm8gdGllbmUgYW50ZXJpb3IsIGFzw60gcXVlIG5vIHB1ZWRlIHNhbGlyLgojIFRhYmxhIHByZWNpb3M6IGZlY2hhLCBwcmVjaW8KIyBDb2x1bW5hcyBkZWwgcmVzdWx0YWRvOiBmZWNoYSwgc3ViaWRhCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpDT05TVUxUQV82ID0gIiIiCi0tIEVzY3JpYmUgdHUgY29uc3VsdGEgYXF1w60KIiIiCgojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIyBObyBoYWNlIGZhbHRhIGNhbWJpYXIgbmFkYSBkZWJham8gZGUgZXN0YSBsw61uZWEKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClRJVFVMTyA9ICJFbnRyZWdhIDc6IFZlbnRhbmEgZGVzbGl6YW50ZSIKRUpFUkNJQ0lPUyA9IFsKICAgIHsibnVtZXJvIjogMSwgInRpdHVsbyI6ICJMYSBtZWRpYSBkZSB0cmVzIGTDrWFzIiwgInRpcG8iOiAicHl0aG9uIiwgImZ1bmNpb24iOiBtZWRpYV9tb3ZpbCwgImNhc29zIjogWwogICAgICAgIChbWzEwLCAxMiwgMTUsIDEzLCAxMV0sIDNdLCBbMTIuMywgMTMuMywgMTNdKSwKICAgICAgICAoW1syLCA0LCA2LCA4XSwgMl0sIFszLCA1LCA3XSksCiAgICAgICAgKFtbNV0sIDFdLCBbNV0pLAogICAgICAgIChbWzEsIDJdLCAzXSwgW10pLAogICAgICAgIChbWzEsIDIsIDNdLCAzXSwgWzJdKSwKICAgICAgICAoW1swLCAwLCAxXSwgMl0sIFswLCAwLjVdKSwKICAgICAgICAoW1tdLCAxXSwgW10pCiAgICBdfSwKICAgIHsibnVtZXJvIjogMiwgInRpdHVsbyI6ICJFbCBhY3VtdWxhZG8gZGUgY2FkYSB0aWVuZGEiLCAidGlwbyI6ICJzcWwiLCAiY29uc3VsdGEiOiBDT05TVUxUQV8yLCAiY29uX29yZGVuIjogVHJ1ZSwgImRhdG9zIjogWwogICAgICAgICgiQ1JFQVRFIFRBQkxFIHZlbnRhcyAodGllbmRhLCBmZWNoYSwgaW1wb3J0ZSk7IElOU0VSVCBJTlRPIHZlbnRhcyBWQUxVRVMgKCdDZW50cm8nLCAnMjAyNi0wMy0wMScsIDEwMCksICgnTm9ydGUnLCAnMjAyNi0wMy0wMScsIDgwKSwgKCdDZW50cm8nLCAnMjAyNi0wMy0wMicsIDUwKSwgKCdOb3J0ZScsICcyMDI2LTAzLTAyJywgMjApLCAoJ0NlbnRybycsICcyMDI2LTAzLTAzJywgNzApOyIsIFtbIkNlbnRybyIsICIyMDI2LTAzLTAxIiwgMTAwXSwgWyJDZW50cm8iLCAiMjAyNi0wMy0wMiIsIDE1MF0sIFsiQ2VudHJvIiwgIjIwMjYtMDMtMDMiLCAyMjBdLCBbIk5vcnRlIiwgIjIwMjYtMDMtMDEiLCA4MF0sIFsiTm9ydGUiLCAiMjAyNi0wMy0wMiIsIDEwMF1dKSwKICAgICAgICAoIkNSRUFURSBUQUJMRSB2ZW50YXMgKHRpZW5kYSwgZmVjaGEsIGltcG9ydGUpOyBJTlNFUlQgSU5UTyB2ZW50YXMgVkFMVUVTICgnU3VyJywgJzIwMjYtMDQtMDMnLCA1KSwgKCdFc3RlJywgJzIwMjYtMDQtMDInLCA0MCksICgnU3VyJywgJzIwMjYtMDQtMDEnLCAzMCksICgnU3VyJywgJzIwMjYtMDQtMDInLCAwKSwgKCdFc3RlJywgJzIwMjYtMDQtMDEnLCAxMCk7IiwgW1siRXN0ZSIsICIyMDI2LTA0LTAxIiwgMTBdLCBbIkVzdGUiLCAiMjAyNi0wNC0wMiIsIDUwXSwgWyJTdXIiLCAiMjAyNi0wNC0wMSIsIDMwXSwgWyJTdXIiLCAiMjAyNi0wNC0wMiIsIDMwXSwgWyJTdXIiLCAiMjAyNi0wNC0wMyIsIDM1XV0pCiAgICBdfSwKICAgIHsibnVtZXJvIjogMywgInRpdHVsbyI6ICJMYSBtZWpvciBzZW1hbmEgY29ydGEiLCAidGlwbyI6ICJweXRob24iLCAiZnVuY2lvbiI6IG1heW9yX3N1bWEsICJjYXNvcyI6IFsKICAgICAgICAoW1szLCAxLCA0LCAxLCA1LCA5LCAyXSwgM10sIDE2KSwKICAgICAgICAoW1sxMCwgLTUsIDIwLCAxXSwgMl0sIDIxKSwKICAgICAgICAoW1stMiwgLTEsIC0zXSwgMl0sIC0zKSwKICAgICAgICAoW1s1XSwgMV0sIDUpLAogICAgICAgIChbWzEsIDJdLCAzXSwgTm9uZSksCiAgICAgICAgKFtbNCwgNCwgNF0sIDNdLCAxMiksCiAgICAgICAgKFtbLTcsIC0xLCAtOV0sIDFdLCAtMSkKICAgIF19LAogICAgeyJudW1lcm8iOiA0LCAidGl0dWxvIjogIkVsIHByaW1lciBwZWRpZG8iLCAidGlwbyI6ICJzcWwiLCAiY29uc3VsdGEiOiBDT05TVUxUQV80LCAiY29uX29yZGVuIjogVHJ1ZSwgImRhdG9zIjogWwogICAgICAgICgiQ1JFQVRFIFRBQkxFIHBlZGlkb3MgKGlkLCBjbGllbnRlLCBmZWNoYSwgaW1wb3J0ZSk7IElOU0VSVCBJTlRPIHBlZGlkb3MgVkFMVUVTICgxLCAnQW5hJywgJzIwMjYtMDItMDMnLCAzMCksICgyLCAnQmV0bycsICcyMDI2LTAxLTE1JywgMTIpLCAoMywgJ0FuYScsICcyMDI2LTAxLTIwJywgNDUpLCAoNCwgJ0Npcm8nLCAnMjAyNi0wMi0wMScsIDgpLCAoNSwgJ0JldG8nLCAnMjAyNi0wMS0zMCcsIDYwKSwgKDYsICdBbmEnLCAnMjAyNi0wMy0wMScsIDIwKTsiLCBbWyJBbmEiLCAiMjAyNi0wMS0yMCIsIDQ1XSwgWyJCZXRvIiwgIjIwMjYtMDEtMTUiLCAxMl0sIFsiQ2lybyIsICIyMDI2LTAyLTAxIiwgOF1dKSwKICAgICAgICAoIkNSRUFURSBUQUJMRSBwZWRpZG9zIChpZCwgY2xpZW50ZSwgZmVjaGEsIGltcG9ydGUpOyBJTlNFUlQgSU5UTyBwZWRpZG9zIFZBTFVFUyAoMSwgJ0RhbmknLCAnMjAyNi0wNC0wMicsIDE1KSwgKDIsICdFbGknLCAnMjAyNi0wNC0wMScsIDQwKSwgKDMsICdEYW5pJywgJzIwMjYtMDQtMDInLCAyNSksICg0LCAnRWxpJywgJzIwMjYtMDQtMDMnLCA1KSwgKDUsICdEYW5pJywgJzIwMjYtMDQtMDUnLCA5KTsiLCBbWyJEYW5pIiwgIjIwMjYtMDQtMDIiLCAxNV0sIFsiRWxpIiwgIjIwMjYtMDQtMDEiLCA0MF1dKQogICAgXX0sCiAgICB7Im51bWVybyI6IDUsICJ0aXR1bG8iOiAiTG9zIGTDrWFzIGRlbnRybyBkZWwgcHJlc3VwdWVzdG8iLCAidGlwbyI6ICJweXRob24iLCAiZnVuY2lvbiI6IHJhY2hhX2VuX3ByZXN1cHVlc3RvLCAiY2Fzb3MiOiBbCiAgICAgICAgKFtbNCwgMSwgMSwgM10sIDVdLCAzKSwKICAgICAgICAoW1syLCAzLCAxLCAxLCA1LCAxXSwgNl0sIDMpLAogICAgICAgIChbW10sIDEwXSwgMCksCiAgICAgICAgKFtbN10sIDVdLCAwKSwKICAgICAgICAoW1swLCAwLCAwXSwgMF0sIDMpLAogICAgICAgIChbWzEsIDEsIDFdLCAxMF0sIDMpLAogICAgICAgIChbWzksIDEsIDEsIDldLCAyXSwgMiksCiAgICAgICAgKFtbMywgOCwgMSwgMSwgMSwgNl0sIDRdLCAzKQogICAgXX0sCiAgICB7Im51bWVybyI6IDYsICJ0aXR1bG8iOiAiTGFzIHN1YmlkYXMgZGUgcHJlY2lvIiwgInRpcG8iOiAic3FsIiwgImNvbnN1bHRhIjogQ09OU1VMVEFfNiwgImNvbl9vcmRlbiI6IFRydWUsICJkYXRvcyI6IFsKICAgICAgICAoIkNSRUFURSBUQUJMRSBwcmVjaW9zIChmZWNoYSwgcHJlY2lvKTsgSU5TRVJUIElOVE8gcHJlY2lvcyBWQUxVRVMgKCcyMDI2LTA1LTAxJywgMTApLCAoJzIwMjYtMDUtMDInLCAxMiksICgnMjAyNi0wNS0wMycsIDExKSwgKCcyMDI2LTA1LTA0JywgMTUpLCAoJzIwMjYtMDUtMDUnLCAxNSk7IiwgW1siMjAyNi0wNS0wMiIsIDJdLCBbIjIwMjYtMDUtMDQiLCA0XV0pLAogICAgICAgICgiQ1JFQVRFIFRBQkxFIHByZWNpb3MgKGZlY2hhLCBwcmVjaW8pOyBJTlNFUlQgSU5UTyBwcmVjaW9zIFZBTFVFUyAoJzIwMjYtMDYtMDgnLCAyNSksICgnMjAyNi0wNi0wMScsIDIwKSwgKCcyMDI2LTA2LTA0JywgMjEpLCAoJzIwMjYtMDYtMDknLCAyNCksICgnMjAyNi0wNi0wMycsIDE4KTsiLCBbWyIyMDI2LTA2LTA0IiwgM10sIFsiMjAyNi0wNi0wOCIsIDRdXSkKICAgIF19Cl0KCmltcG9ydCBjb3B5CmltcG9ydCBzcWxpdGUzCmltcG9ydCBzeXMKCgpkZWYgX2lndWFsZXMoYSwgYik6CiAgICBpZiBpc2luc3RhbmNlKGEsIGZsb2F0KSBvciBpc2luc3RhbmNlKGIsIGZsb2F0KToKICAgICAgICB0cnk6CiAgICAgICAgICAgIHJldHVybiBhYnMoYSAtIGIpIDwgMWUtNgogICAgICAgIGV4Y2VwdCBUeXBlRXJyb3I6CiAgICAgICAgICAgIHJldHVybiBGYWxzZQogICAgaWYgaXNpbnN0YW5jZShhLCAobGlzdCwgdHVwbGUpKSBhbmQgaXNpbnN0YW5jZShiLCAobGlzdCwgdHVwbGUpKToKICAgICAgICByZXR1cm4gbGVuKGEpID09IGxlbihiKSBhbmQgYWxsKF9pZ3VhbGVzKHgsIHkpIGZvciB4LCB5IGluIHppcChhLCBiKSkKICAgIGlmIGlzaW5zdGFuY2UoYSwgZGljdCkgYW5kIGlzaW5zdGFuY2UoYiwgZGljdCk6CiAgICAgICAgcmV0dXJuIGEua2V5cygpID09IGIua2V5cygpIGFuZCBhbGwoX2lndWFsZXMoYVtrXSwgYltrXSkgZm9yIGsgaW4gYSkKICAgIHJldHVybiBhID09IGIKCgpkZWYgX3JldmlzYXJfcHl0aG9uKGVqZXJjaWNpbyk6CiAgICBub21icmUgPSBlamVyY2ljaW9bImZ1bmNpb24iXS5fX25hbWVfXwogICAgZm9yIGFyZ3MsIGVzcGVyYWRvIGluIGVqZXJjaWNpb1siY2Fzb3MiXToKICAgICAgICBsbGFtYWRhID0gZiJ7bm9tYnJlfSh7JywgJy5qb2luKHJlcHIoYSkgZm9yIGEgaW4gYXJncyl9KSIKICAgICAgICB0cnk6CiAgICAgICAgICAgIG9idGVuaWRvID0gZWplcmNpY2lvWyJmdW5jaW9uIl0oKmNvcHkuZGVlcGNvcHkoYXJncykpCiAgICAgICAgZXhjZXB0IE5vdEltcGxlbWVudGVkRXJyb3I6CiAgICAgICAgICAgIHJldHVybiAiU0lOIEVNUEVaQVIiLCBbXQogICAgICAgIGV4Y2VwdCBFeGNlcHRpb24gYXMgZXJyb3I6CiAgICAgICAgICAgIHJldHVybiAiRkFMTEEiLCBbZiJDYXNvOiB7bGxhbWFkYX0iLCBmIkVycm9yOiB7dHlwZShlcnJvcikuX19uYW1lX199OiB7ZXJyb3J9Il0KICAgICAgICBpZiBub3QgX2lndWFsZXMob2J0ZW5pZG8sIGVzcGVyYWRvKToKICAgICAgICAgICAgcmV0dXJuICJGQUxMQSIsIFtmIkNhc286IHtsbGFtYWRhfSIsIGYiRXNwZXJhZG86IHtlc3BlcmFkbyFyfSIsIGYiT2J0ZW5pZG86IHtvYnRlbmlkbyFyfSJdCiAgICByZXR1cm4gIlBBU0EiLCBbXQoKCmRlZiBfcmV2aXNhcl9zcWwoZWplcmNpY2lvKToKICAgIGxpbmVhcyA9IGVqZXJjaWNpb1siY29uc3VsdGEiXS5zcGxpdGxpbmVzKCkKICAgIGlmIG5vdCBhbnkobC5zdHJpcCgpIGFuZCBub3QgbC5zdHJpcCgpLnN0YXJ0c3dpdGgoIi0tIikgZm9yIGwgaW4gbGluZWFzKToKICAgICAgICByZXR1cm4gIlNJTiBFTVBFWkFSIiwgW10KICAgIGZvciBwcmVwYXJhY2lvbiwgZXNwZXJhZG8gaW4gZWplcmNpY2lvWyJkYXRvcyJdOgogICAgICAgIGNvbmV4aW9uID0gc3FsaXRlMy5jb25uZWN0KCI6bWVtb3J5OiIpCiAgICAgICAgY29uZXhpb24uZXhlY3V0ZXNjcmlwdChwcmVwYXJhY2lvbikKICAgICAgICB0cnk6CiAgICAgICAgICAgIG9idGVuaWRvID0gY29uZXhpb24uZXhlY3V0ZShlamVyY2ljaW9bImNvbnN1bHRhIl0pLmZldGNoYWxsKCkKICAgICAgICBleGNlcHQgc3FsaXRlMy5FcnJvciBhcyBlcnJvcjoKICAgICAgICAgICAgcmV0dXJuICJGQUxMQSIsIFtmIkVycm9yIGVuIGxhIGNvbnN1bHRhOiB7ZXJyb3J9Il0KICAgICAgICBmaW5hbGx5OgogICAgICAgICAgICBjb25leGlvbi5jb21taXQoKQogICAgICAgIGNvbmV4aW9uLmNsb3NlKCkKICAgICAgICBjb21wYXJhciA9IChvYnRlbmlkbywgZXNwZXJhZG8pCiAgICAgICAgaWYgbm90IGVqZXJjaWNpb1siY29uX29yZGVuIl06CiAgICAgICAgICAgIGNvbXBhcmFyID0gKHNvcnRlZChvYnRlbmlkbywga2V5PXJlcHIpLCBzb3J0ZWQoKHR1cGxlKGYpIGZvciBmIGluIGVzcGVyYWRvKSwga2V5PXJlcHIpKQogICAgICAgIGlmIG5vdCBfaWd1YWxlcygqY29tcGFyYXIpOgogICAgICAgICAgICByZXR1cm4gIkZBTExBIiwgWwogICAgICAgICAgICAgICAgZiJFc3BlcmFkbzoge1t0dXBsZShmKSBmb3IgZiBpbiBlc3BlcmFkb119IiwKICAgICAgICAgICAgICAgIGYiT2J0ZW5pZG86IHtvYnRlbmlkb30iCiAgICAgICAgICAgIF0KICAgIHJldHVybiAiUEFTQSIsIFtdCgoKZGVmIG1haW4oKToKICAgIHN5cy5zdGRvdXQucmVjb25maWd1cmUoZW5jb2Rpbmc9InV0Zi04IikKICAgIHByaW50KFRJVFVMTykKICAgIHByaW50KCkKICAgIGNvcnJlY3RvcyA9IDAKICAgIGZvciBlamVyY2ljaW8gaW4gRUpFUkNJQ0lPUzoKICAgICAgICByZXZpc2FyID0gX3JldmlzYXJfcHl0aG9uIGlmIGVqZXJjaWNpb1sidGlwbyJdID09ICJweXRob24iIGVsc2UgX3JldmlzYXJfc3FsCiAgICAgICAgZXN0YWRvLCBkZXRhbGxlcyA9IHJldmlzYXIoZWplcmNpY2lvKQogICAgICAgIHByaW50KGYie2VqZXJjaWNpb1snbnVtZXJvJ119LiB7ZWplcmNpY2lvWyd0aXR1bG8nXX06IHtlc3RhZG99IikKICAgICAgICBmb3IgZGV0YWxsZSBpbiBkZXRhbGxlczoKICAgICAgICAgICAgcHJpbnQoZiIgICB7ZGV0YWxsZX0iKQogICAgICAgIGlmIGVzdGFkbyA9PSAiUEFTQSI6CiAgICAgICAgICAgIGNvcnJlY3RvcyArPSAxCiAgICBwcmludCgpCiAgICBwcmludChmIlJlc3VsdGFkbzoge2NvcnJlY3Rvc30gZGUge2xlbihFSkVSQ0lDSU9TKX0gZWplcmNpY2lvcyBjb3JyZWN0b3MuIikKICAgIHJldHVybiAwIGlmIGNvcnJlY3RvcyA9PSBsZW4oRUpFUkNJQ0lPUykgZWxzZSAxCgoKaWYgX19uYW1lX18gPT0gIl9fbWFpbl9fIjoKICAgIHN5cy5leGl0KG1haW4oKSkK" download="entrega_07.py">Descargar entrega_07.py</a>
+  </section>
+  <article class="ejercicio" id="ejercicio-1" data-ejercicio="1">
+      <div class="encabezado"><span class="lenguaje">Python</span><h2>1. La media de tres días</h2></div>
+      <p class="enunciado">Escribe <code>media_movil</code> para que devuelva una lista con la media de cada tramo de <code>k</code> valores seguidos de <code>valores</code>, redondeada a 1 decimal con <code>round</code>. El primer tramo va de la posición 0 a la <code>k - 1</code>, el segundo empieza en la 1, y así hasta el último tramo completo. Si no hay ningún tramo completo, devuelve una lista vacía. <code>k</code> siempre es mayor que 0.</p>
+      <ul class="ejemplos"><li><code>media_movil([10, 12, 15, 13, 11], 3)</code> devuelve <code>[12.3, 13.3, 13]</code></li><li><code>media_movil([2, 4, 6, 8], 2)</code> devuelve <code>[3, 5, 7]</code></li></ul>
+      <ol class="pistas" aria-live="polite"><li hidden>Con 5 valores y tramos de 3 hay 3 tramos. Antes de escribir el bucle, piensa cuántos tramos salen con <code>n</code> valores y tramos de <code>k</code>.</li><li hidden>Calcula la suma del primer tramo una vez. Para pasar al siguiente no hace falta volver a sumarlo entero: un valor entra y otro sale.</li><li hidden>Prueba tu bucle mentalmente con la lista de un solo elemento y <code>k = 1</code>: si el último tramo se queda fuera, revisa el límite del <code>range</code>.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>def media_movil(valores, k):
+    if k &gt; len(valores):
+        return []
+    suma = sum(valores[:k])
+    medias = [round(suma / k, 1)]
+    for i in range(k, len(valores)):
+        suma += valores[i] - valores[i - k]
+        medias.append(round(suma / k, 1))
+    return medias</code></pre>
+        <p>Con <code>n</code> valores hay <code>n - k + 1</code> tramos: la versión que recorre <code>range(len(valores) - k)</code> pierde siempre el último, y con los ejemplos de arriba ya se nota. La solución suma el primer tramo y luego, en cada paso, suma el valor que entra y resta el que sale, así que cada valor se toca dos veces como mucho aunque <code>k</code> sea grande. Sumar cada tramo con <code>sum(valores[i:i + k])</code> también es correcto si el <code>range</code> llega a <code>len(valores) - k + 1</code>, solo que hace más trabajo.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-2" data-ejercicio="2">
+      <div class="encabezado"><span class="lenguaje">SQL</span><h2>2. El acumulado de cada tienda</h2></div>
+      <p class="enunciado">Cada fila de <code>ventas</code> es lo que vendió una tienda en un día, y no hay dos filas de la misma tienda con la misma fecha. Muestra <code>tienda</code>, <code>fecha</code> y una columna <code>acumulado</code> con el total vendido por esa tienda desde su primer día hasta esa fecha, incluida. Ordena por tienda y, dentro de cada tienda, por fecha.</p>
+      <figure class="datos">
+        <figcaption>Tabla ventas</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>tienda</th><th>fecha</th><th>importe</th></tr></thead>
+          <tbody><tr><td>Centro</td><td>2026-03-01</td><td>100</td></tr><tr><td>Norte</td><td>2026-03-01</td><td>80</td></tr><tr><td>Centro</td><td>2026-03-02</td><td>50</td></tr><tr><td>Norte</td><td>2026-03-02</td><td>20</td></tr><tr><td>Centro</td><td>2026-03-03</td><td>70</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Resultado esperado</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>tienda</th><th>fecha</th><th>acumulado</th></tr></thead>
+          <tbody><tr><td>Centro</td><td>2026-03-01</td><td>100</td></tr><tr><td>Centro</td><td>2026-03-02</td><td>150</td></tr><tr><td>Centro</td><td>2026-03-03</td><td>220</td></tr><tr><td>Norte</td><td>2026-03-01</td><td>80</td></tr><tr><td>Norte</td><td>2026-03-02</td><td>100</td></tr></tbody>
+        </table></div>
+      </figure>
+      <ol class="pistas" aria-live="polite"><li hidden>Con <code>GROUP BY</code> perderías las filas de cada día: aquí quieres conservar todas y añadir a cada una un total que mira hacia atrás.</li><li hidden>Después de <code>SUM(importe)</code> puedes escribir <code>OVER (...)</code> y, dentro de los paréntesis, decir cómo se reparten y cómo se ordenan las filas que entran en la suma.</li><li hidden>Necesitas dos cosas dentro del <code>OVER</code>: que cada tienda lleve su propia cuenta, empezando de cero, y que la cuenta avance por fecha. Mira qué hacen <code>PARTITION BY</code> y <code>ORDER BY</code> ahí dentro.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>SELECT tienda, fecha,
+       SUM(importe) OVER (PARTITION BY tienda ORDER BY fecha) AS acumulado
+FROM ventas
+ORDER BY tienda, fecha;</code></pre>
+        <p><code>PARTITION BY tienda</code> hace que cada tienda empiece su suma desde cero, y el <code>ORDER BY</code> de dentro del <code>OVER</code> convierte la suma en acumulada: cada fila suma las de su tienda con fecha menor o igual. Sin la partición, el acumulado del Norte arrastra también las ventas del Centro. El <code>ORDER BY</code> final es otro distinto: solo decide cómo se muestran las filas, y por eso hace falta aunque ya haya uno dentro del <code>OVER</code>.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-3" data-ejercicio="3">
+      <div class="encabezado"><span class="lenguaje">Python</span><h2>3. La mejor semana corta</h2></div>
+      <p class="enunciado">Tienes las ventas de cada día en una lista. Escribe <code>mayor_suma</code> para que devuelva la mayor suma de <code>k</code> días seguidos. Las ventas pueden ser negativas, porque cuentan las devoluciones. Si hay menos de <code>k</code> días, devuelve <code>None</code>. <code>k</code> siempre es mayor que 0.</p>
+      <ul class="ejemplos"><li><code>mayor_suma([3, 1, 4, 1, 5, 9, 2], 3)</code> devuelve <code>16</code></li><li><code>mayor_suma([10, -5, 20, 1], 2)</code> devuelve <code>21</code></li></ul>
+      <ol class="pistas" aria-live="polite"><li hidden>Empieza con la suma de los primeros <code>k</code> días: ya es una candidata a mejor suma.</li><li hidden>Al mover la ventana un día a la derecha, entra el día nuevo y sale el que quedó atrás <code>k</code> posiciones; no hace falta volver a sumar los demás.</li><li hidden>¿Con qué valor inicial empiezas a buscar el máximo? Piensa en una semana en la que todos los días hubo más devoluciones que ventas.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>def mayor_suma(ventas, k):
+    if len(ventas) &lt; k:
+        return None
+    actual = sum(ventas[:k])
+    mejor = actual
+    for i in range(k, len(ventas)):
+        actual += ventas[i] - ventas[i - k]
+        mejor = max(mejor, actual)
+    return mejor</code></pre>
+        <p>La ventana se mueve sumando el día que entra y restando el que sale, así que cada día se mira una vez aunque <code>k</code> sea grande. La trampa está en el valor inicial del máximo: empezar en 0 parece inocente, pero si todas las ventanas suman en negativo la función devuelve 0, una suma que no existe. Empezar con la suma de la primera ventana real evita el problema sin tener que inventar un valor como <code>-infinito</code>.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-4" data-ejercicio="4">
+      <div class="encabezado"><span class="lenguaje">SQL</span><h2>4. El primer pedido</h2></div>
+      <p class="enunciado">Muestra el primer pedido de cada cliente: <code>cliente</code>, <code>fecha</code> e <code>importe</code>, ordenado por cliente. Si un cliente hizo dos pedidos el mismo día, cuenta como primero el de <code>id</code> menor, y cada cliente debe salir una sola vez.</p>
+      <figure class="datos">
+        <figcaption>Tabla pedidos</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>id</th><th>cliente</th><th>fecha</th><th>importe</th></tr></thead>
+          <tbody><tr><td>1</td><td>Ana</td><td>2026-02-03</td><td>30</td></tr><tr><td>2</td><td>Beto</td><td>2026-01-15</td><td>12</td></tr><tr><td>3</td><td>Ana</td><td>2026-01-20</td><td>45</td></tr><tr><td>4</td><td>Ciro</td><td>2026-02-01</td><td>8</td></tr><tr><td>5</td><td>Beto</td><td>2026-01-30</td><td>60</td></tr><tr><td>6</td><td>Ana</td><td>2026-03-01</td><td>20</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Resultado esperado</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>cliente</th><th>fecha</th><th>importe</th></tr></thead>
+          <tbody><tr><td>Ana</td><td>2026-01-20</td><td>45</td></tr><tr><td>Beto</td><td>2026-01-15</td><td>12</td></tr><tr><td>Ciro</td><td>2026-02-01</td><td>8</td></tr></tbody>
+        </table></div>
+      </figure>
+      <ol class="pistas" aria-live="polite"><li hidden>Numera los pedidos de cada cliente del más antiguo al más reciente: el primero de cada uno es el que lleva el número 1.</li><li hidden>Hay varias funciones de ventana que numeran filas. Fíjate en qué hace cada una cuando dos filas empatan en el orden: unas repiten número y otras no.</li><li hidden>Una función de ventana no se puede usar directamente en el <code>WHERE</code> de la misma consulta. Calcula el número en una subconsulta y filtra desde fuera.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>SELECT cliente, fecha, importe
+FROM (
+    SELECT cliente, fecha, importe,
+           ROW_NUMBER() OVER (PARTITION BY cliente ORDER BY fecha, id) AS n
+    FROM pedidos
+)
+WHERE n = 1
+ORDER BY cliente;</code></pre>
+        <p><code>ROW_NUMBER</code> da 1, 2, 3... dentro de cada cliente sin repetir nunca un número, y el <code>id</code> en el orden decide los empates de fecha. <code>RANK</code> da el mismo número a las filas empatadas, así que dos pedidos del mismo primer día salen los dos con 1 y el cliente aparece dos veces; con la primera tabla no se nota porque no hay empates. Filtrar en una consulta exterior es obligatorio, porque el <code>WHERE</code> se evalúa antes que las funciones de ventana.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-5" data-ejercicio="5">
+      <div class="encabezado"><span class="lenguaje">Python</span><h2>5. Los días dentro del presupuesto</h2></div>
+      <p class="enunciado">Tienes lo que gastaste cada día (números enteros, nunca negativos) y un presupuesto. Escribe <code>racha_en_presupuesto</code> para que devuelva cuántos días seguidos, como máximo, puedes juntar sin que su gasto total pase del presupuesto. Gastar exactamente el presupuesto está permitido. Si ningún día cabe por sí solo, devuelve 0.</p>
+      <ul class="ejemplos"><li><code>racha_en_presupuesto([4, 1, 1, 3], 5)</code> devuelve <code>3</code></li><li><code>racha_en_presupuesto([2, 3, 1, 1, 5, 1], 6)</code> devuelve <code>3</code></li></ul>
+      <ol class="pistas" aria-live="polite"><li hidden>Usa una ventana de tamaño variable: un índice marca dónde empieza y el bucle va añadiendo días por el final mientras lleva la suma.</li><li hidden>Cuando la suma se pasa del presupuesto, no tires toda la ventana: quita días por el principio, uno a uno, hasta que vuelva a caber.</li><li hidden>A veces hay que quitar más de un día para volver a caber, y a veces la ventana se queda vacía. Después de ajustarla, su longitud es una candidata a la mejor.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>def racha_en_presupuesto(gastos, presupuesto):
+    inicio = 0
+    suma = 0
+    mejor = 0
+    for fin, gasto in enumerate(gastos):
+        suma += gasto
+        while suma &gt; presupuesto:
+            suma -= gastos[inicio]
+            inicio += 1
+        mejor = max(mejor, fin - inicio + 1)
+    return mejor</code></pre>
+        <p>La ventana crece por la derecha y encoge por la izquierda solo lo justo para volver a caber; como los gastos no son negativos, quitar días nunca hace que la suma suba. Empezar la ventana de cero en el día que se pasa parece razonable, pero tira días del principio que todavía cabían: con <code>[4, 1, 1, 3]</code> y presupuesto 5 se pierde la racha <code>1, 1, 3</code>, y además cuenta como racha un día que por sí solo ya se pasa. Aunque hay un <code>while</code> dentro del <code>for</code>, cada día entra y sale de la ventana una sola vez.</p>
+      </details>
+    </article>
+  <article class="ejercicio" id="ejercicio-6" data-ejercicio="6">
+      <div class="encabezado"><span class="lenguaje">SQL</span><h2>6. Las subidas de precio</h2></div>
+      <p class="enunciado">La tabla <code>precios</code> guarda el precio de un producto en las fechas en que se revisó, que no siempre son días seguidos. Muestra la <code>fecha</code> y la <code>subida</code> (precio de esa fecha menos el de la revisión anterior) de las revisiones en que el precio subió respecto a la anterior, ordenadas por fecha. La primera revisión no tiene anterior, así que no puede salir.</p>
+      <figure class="datos">
+        <figcaption>Tabla precios</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>fecha</th><th>precio</th></tr></thead>
+          <tbody><tr><td>2026-05-01</td><td>10</td></tr><tr><td>2026-05-02</td><td>12</td></tr><tr><td>2026-05-03</td><td>11</td></tr><tr><td>2026-05-04</td><td>15</td></tr><tr><td>2026-05-05</td><td>15</td></tr></tbody>
+        </table></div>
+      </figure>
+      <figure class="datos">
+        <figcaption>Resultado esperado</figcaption>
+        <div class="desplazable" tabindex="0"><table>
+          <thead><tr><th>fecha</th><th>subida</th></tr></thead>
+          <tbody><tr><td>2026-05-02</td><td>2</td></tr><tr><td>2026-05-04</td><td>4</td></tr></tbody>
+        </table></div>
+      </figure>
+      <ol class="pistas" aria-live="polite"><li hidden>Para cada fila necesitas el precio de la fila anterior por fecha, que no es lo mismo que el precio del día anterior en el calendario.</li><li hidden>Hay una función de ventana que devuelve el valor de una columna en la fila previa según el orden que indiques. En la primera fila devuelve NULL.</li><li hidden>Calcula la diferencia en una subconsulta y filtra fuera las que sean positivas. Una comparación con NULL nunca es verdadera, así que la primera fila se descarta sola.</li></ol>
+      <div class="mandos">
+        <button class="boton sobrio ver-pista" type="button">Ver pista 1 de 3</button>
+        <label class="hecho"><input type="checkbox" class="marcar"> Lo resolví</label>
+      </div>
+      <details class="solucion">
+        <summary>Ver solución</summary>
+        <pre><code>SELECT fecha, subida
+FROM (
+    SELECT fecha,
+           precio - LAG(precio) OVER (ORDER BY fecha) AS subida
+    FROM precios
+)
+WHERE subida &gt; 0
+ORDER BY fecha;</code></pre>
+        <p><code>LAG(precio) OVER (ORDER BY fecha)</code> trae el precio de la revisión anterior, haya pasado un día o una semana. Unir la tabla consigo misma buscando la fecha de ayer funciona mientras las revisiones son diarias, pero en cuanto falta un día esa fila se queda sin pareja y su subida desaparece del resultado. La resta con NULL da NULL y <code>NULL &gt; 0</code> no es verdadero, por eso la primera revisión no sale. <code>date(..., '-1 day')</code> es propio de SQLite; <code>LAG</code> vale igual en PostgreSQL, MySQL 8 y SQL Server.</p>
+      </details>
+    </article>
+</main>
+<script>
+const CLAVE_ENTREGA = "retos-python-sql:ventana-deslizante:hechos";
+const ejercicios = [...document.querySelectorAll('.ejercicio')];
+
+function leerHechos() {
+  try {
+    return JSON.parse(localStorage.getItem(CLAVE_ENTREGA)) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function guardarHechos(hechos) {
+  try {
+    localStorage.setItem(CLAVE_ENTREGA, JSON.stringify(hechos));
+  } catch (e) { /* sin almacenamiento: el contador dura hasta recargar */ }
+}
+
+function pintarAvance() {
+  const marcados = ejercicios.filter((e) => e.querySelector('.marcar').checked);
+  document.getElementById('hechos').textContent = String(marcados.length);
+  [...document.getElementById('progreso').children].forEach((caja, i) => {
+    caja.classList.toggle('hecho', i < marcados.length);
+  });
+  guardarHechos(marcados.map((e) => e.dataset.ejercicio));
+}
+
+const iniciales = leerHechos();
+ejercicios.forEach((ejercicio) => {
+  const marcar = ejercicio.querySelector('.marcar');
+  marcar.checked = iniciales.includes(ejercicio.dataset.ejercicio);
+  marcar.addEventListener('change', pintarAvance);
+
+  const boton = ejercicio.querySelector('.ver-pista');
+  const pistas = [...ejercicio.querySelectorAll('.pistas li')];
+  boton.addEventListener('click', () => {
+    const siguiente = pistas.findIndex((p) => p.hidden);
+    pistas[siguiente].hidden = false;
+    if (siguiente + 1 < pistas.length) {
+      boton.textContent = `Ver pista ${siguiente + 2} de ${pistas.length}`;
+    } else {
+      boton.textContent = 'No hay más pistas';
+      boton.disabled = true;
+    }
+  });
+});
+pintarAvance();
+</script>
+</body>
+</html>
